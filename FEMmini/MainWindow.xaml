@@ -1,0 +1,68 @@
+﻿<Window x:Class="FEMmini.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:glWpfControl="clr-namespace:OpenTK.Wpf;assembly=GLWpfControl"
+        xmlns:ScottPlot="clr-namespace:ScottPlot;assembly=ScottPlot.WPF"
+        xmlns:local="clr-namespace:FEMmini"
+        xmlns:col="clr-namespace:System.Collections;assembly=mscorlib"
+        mc:Ignorable="d"
+        Title="miniFEM" Height="1000" Width="1200"
+        Icon="D:\PetProjects\3D_graphics\Images\title.png">
+
+    <Border Padding="10">
+        <Grid x:Name="MainPanel">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <!-- Панель с кнопками -->
+            <Grid Height="30" Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Button x:Name="OpenSolution" Grid.Column="0" Content="" Width="30">
+                    <Button.Background>
+                        <ImageBrush ImageSource="D:\PetProjects\3D_graphics\Images\Custom-Icon-Design-Mono-General-2-Folder.png" />
+                    </Button.Background>
+                </Button>
+                <Button Margin="10 0 0 0" x:Name="SaveSolution" Grid.Column="1" Content="" Width="30">
+                    <Button.Background>
+                        <ImageBrush ImageSource="D:\PetProjects\3D_graphics\Images\Custom-Icon-Design-Mono-General-1-Save.512.png" />
+                    </Button.Background>
+                </Button>
+                <Button Margin="10 0 0 0" x:Name="ClearSolution" Grid.Column="2" Content="" Width="30">
+                    <Button.Background>
+                        <ImageBrush ImageSource="D:\PetProjects\3D_graphics\Images\Github-Octicons-Trash-24.512.png" />
+                    </Button.Background>
+                </Button>
+            </Grid>
+
+            <TextBlock Text="Инструменты взаимодействия" FontWeight="Bold" Margin="0 10" Grid.Row="1"/>
+
+            <!-- 2 столбца с инструментами -->
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="350" />
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Панель с инструментами -->
+                <local:CanvasInteraction/>
+
+                <!-- Окно с графикой GL -->
+                <Border BorderThickness="5" BorderBrush="#FF000000" Grid.Column="1">
+                    <local:EngineGL Margin="10" />
+                </Border>
+            </Grid>
+
+            <!-- Общая информация по модели -->
+            <local:MouseCoordinates Grid.Row="3"/>
+        </Grid>
+    </Border>
+</Window>

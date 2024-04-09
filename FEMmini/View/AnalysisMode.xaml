@@ -1,0 +1,24 @@
+﻿<UserControl x:Class="FEMmini.AnalysisMode"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:FEMmini"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <StackPanel>
+        <StackPanel.Resources>
+            <local:EnumsIEnumerableConverter x:Key="EnumsIEnumerableConverter"/>
+        </StackPanel.Resources>
+        <TextBlock>Выберите тип решаемой задачи:</TextBlock>
+        <RadioButton GroupName="PlaneType" IsChecked="{Binding Path=AnalysisMode.ProblemType, Converter={StaticResource EnumsIEnumerableConverter}, ConverterParameter={x:Static local:ProblemType.PlaneStress}}" >Plane stress</RadioButton>
+        <RadioButton GroupName="PlaneType" IsChecked="{Binding Path=AnalysisMode.ProblemType, Converter={StaticResource EnumsIEnumerableConverter}, ConverterParameter={x:Static local:ProblemType.PlaneStrain}}">Plane strain</RadioButton>
+        <TextBlock>Выберите тип решаемой задачи:</TextBlock>
+        <RadioButton GroupName="TypeofModel" IsChecked="{Binding Path=AnalysisMode.LinearityType, Converter={StaticResource EnumsIEnumerableConverter}, ConverterParameter={x:Static local:LinearityType.Linear}}">Линейная</RadioButton>
+        <RadioButton GroupName="TypeofModel" IsChecked="{Binding Path=AnalysisMode.LinearityType, Converter={StaticResource EnumsIEnumerableConverter}, ConverterParameter={x:Static local:LinearityType.NonLinear}}">Нелинейная</RadioButton>
+        <Button x:Name="buttonCalculate" Width="60" Height="30" Background="LightGray" Content="Посчитать" Command="{Binding AnalysisMode.CalculateCommand}"/>
+        <Button x:Name="buttonWriteSolution" Margin="0 10 0 0" Width="60" Height="40" Background="LightGray" Command="{Binding WriteSolutionCommand}">
+            <TextBlock>Записать<LineBreak/>результат</TextBlock>
+        </Button>
+    </StackPanel>
+</UserControl>

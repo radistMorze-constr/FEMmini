@@ -1,0 +1,27 @@
+﻿<UserControl x:Class="FEMmini.MouseCoordinates"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:FEMmini"
+             mc:Ignorable="d" 
+             d:DesignHeight="30" d:DesignWidth="400">
+    <Grid  Height="20" Grid.Row="3" Margin="0 10 0 0">
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="2*" />
+        </Grid.ColumnDefinitions>
+        <Grid  Height="20" Grid.Row="3" Grid.Column="1" Margin="0 0 0 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Name="CursorCoordinates" Margin="0 0 20 0" Grid.Column="0" Text="{Binding CommonSign.MouseCoordinates}"></TextBlock>
+            <TextBlock Margin="0 0 20 0" Grid.Column="1">Узлы: 0(0)</TextBlock>
+            <TextBlock Margin="0 0 0 0" Grid.Column="2">Элементы: 0(0)</TextBlock>
+        </Grid>
+
+    </Grid>
+</UserControl>

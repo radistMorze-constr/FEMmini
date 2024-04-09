@@ -1,0 +1,56 @@
+﻿<UserControl x:Class="FEMmini.VisualMode"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:FEMmini"
+             xmlns:common="clr-namespace:Common"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <StackPanel>
+        <StackPanel.Resources>
+            <local:EnumsIEnumerableConverter x:Key="EnumsIEnumerableConverter"/>
+        </StackPanel.Resources>
+        <CheckBox x:Name="TypeVisual" IsChecked="{Binding VisualMode.ModeIsDeformed}" Content="Деформированная"/>
+        <TextBlock Margin="0 10 0 0">Решение для отображения результатов:</TextBlock>
+        <Grid x:Name="SolutionlIDPanel">
+            <Grid.Resources >
+                <Style TargetType="Border" >
+                    <Setter Property="Padding" Value="5,5,5,5" />
+                </Style>
+            </Grid.Resources>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150" />
+                <ColumnDefinition Width="150" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Column="0" Grid.Row="0"><Run Language="ru-ru" Text="№Фазы расчета"/></TextBlock>
+            <TextBlock Grid.Column="1" Grid.Row="0">№Шага нагрузки</TextBlock>
+            <ComboBox x:Name="IterationComboBox" Grid.Column="0" Grid.Row="1"/>
+            <ComboBox x:Name="StepComboBox" Grid.Column="1" Grid.Row="1"/>
+        </Grid>
+        <TextBlock Margin="0 10 0 0">Коэффициент искажения деформированной схемы:</TextBlock>
+        <ComboBox Margin="10 10 0 0" Width="50" HorizontalAlignment="Left" x:Name="MultipleDeform" Grid.Column="0" Grid.Row="1" ItemsSource="{Binding VisualMode.DeformationMultiple}" SelectedValue="{Binding VisualMode.DeformationMultipleChoice}"/>
+        <TextBlock Margin="0 10 0 0">Отображение данных:</TextBlock>
+        <CheckBox x:Name="checkNodes" IsChecked="{Binding VisualMode.ModeNode}" Content="Узлы"/>
+        <CheckBox x:Name="checkElements" IsChecked="{Binding VisualMode.ModeElement}" Content="Элементы"/>
+        <CheckBox x:Name="checkIdNodes" IsChecked="{Binding VisualMode.Mode.IdNodes}" Content="Номера узлов"/>
+        <CheckBox x:Name="checkIdElements" IsChecked="{Binding VisualMode.Mode.IdElements}" Content="Номера элементов"/>
+        <CheckBox x:Name="checkDirihle" IsChecked="{Binding VisualMode.ModeConstraint}" Content="Закрепления"/>
+        <CheckBox x:Name="checkProperties" IsChecked="{Binding VisualMode.Mode.Stiffness}" Content="Тип жесткости"/>
+        <TextBlock Margin="0 10 0 0">Внешние нагрузки:</TextBlock>
+        <CheckBox x:Name="checkNeyman" IsChecked="{Binding VisualMode.Mode.LoadLine}" Content="Нагрузки на ребра"/>
+        <TextBlock Margin="0 10 0 0">Результаты в узлах:</TextBlock>
+        <RadioButton GroupName="TypeResult" IsChecked="{Binding Path=VisualMode.NodeResult, Converter={StaticResource EnumsIEnumerableConverter}, ConverterParameter={x:Static common:VisualNodeText.DeflectionX}}">Перемещения X</RadioButton>
+        <RadioButton GroupName="TypeResult" IsChecked="{Binding Path=VisualMode.NodeResult, Converter={StaticResource EnumsIEnumerableConverter}, ConverterParameter={x:Static common:VisualNodeText.DeflectionY}}">Перемещения Y</RadioButton>
+        <TextBlock Margin="0 10 0 0">Результаты в элементах:</TextBlock>
+        <RadioButton GroupName="TypeResult" IsChecked="{Binding Path=VisualMode.ElementResult, Converter={StaticResource EnumsIEnumerableConverter}, ConverterParameter={x:Static common:VisualElementText.SressX}}">Напряжение Sx</RadioButton>
+        <RadioButton GroupName="TypeResult" IsChecked="{Binding Path=VisualMode.ElementResult, Converter={StaticResource EnumsIEnumerableConverter}, ConverterParameter={x:Static common:VisualElementText.SressY}}">Напряжение Sy</RadioButton>
+        <RadioButton GroupName="TypeResult" IsChecked="{Binding Path=VisualMode.ElementResult, Converter={StaticResource EnumsIEnumerableConverter}, ConverterParameter={x:Static common:VisualElementText.SressXY}}">Напряжение Sxy</RadioButton>
+        <RadioButton GroupName="TypeResult" IsChecked="{Binding Path=VisualMode.ElementResult, Converter={StaticResource EnumsIEnumerableConverter}, ConverterParameter={x:Static common:VisualElementText.Sress1}}">Напряжение S1</RadioButton>
+        <RadioButton GroupName="TypeResult" IsChecked="{Binding Path=VisualMode.ElementResult, Converter={StaticResource EnumsIEnumerableConverter}, ConverterParameter={x:Static common:VisualElementText.Sress3}}">Напряжение S3</RadioButton>
+    </StackPanel>
+</UserControl>
