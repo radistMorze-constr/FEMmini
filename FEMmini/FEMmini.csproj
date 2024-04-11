@@ -37,6 +37,9 @@
     <None Update="View\Engine\Shaders\shaderConstraint.frag">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="View\Engine\Shaders\shaderConstraint.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="View\Engine\Shaders\shaderConstraint.vert">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -30,6 +30,7 @@ namespace Engine
             { ShaderSources.fragBase, "View/Engine/Shaders/shader.frag"},
             { ShaderSources.vertConstraint, "View/Engine/Shaders/shaderConstraint.vert"},
             { ShaderSources.fragConstraint, "View/Engine/Shaders/shaderConstraint.frag"},
+            { ShaderSources.geomConstraint, "View/Engine/Shaders/shaderConstraint.glsl"},
             { ShaderSources.vertLoadLine, "View/Engine/Shaders/shaderForces.vert"},
             { ShaderSources.fragLoadLine, "View/Engine/Shaders/shaderForces.frag"},
             { ShaderSources.geomLoadLine, "View/Engine/Shaders/shaderForces.glsl"},
@@ -120,7 +121,8 @@ namespace Engine
                 _shaderSources[ShaderSources.fragBase]);
             _scenes[TypeToRender.Constraint] = new SceneConstraint(_camera,
                 _shaderSources[ShaderSources.vertConstraint],
-                _shaderSources[ShaderSources.fragConstraint]);
+                _shaderSources[ShaderSources.fragConstraint],
+                _shaderSources[ShaderSources.geomConstraint]);
             _scenes[TypeToRender.LoadNode] = new SceneLoadNode(_camera,
                 _shaderSources[ShaderSources.vertLoad],
                 _shaderSources[ShaderSources.fragLoad],
@@ -149,6 +151,8 @@ namespace Engine
 
             if (Mode.Element) _scenes[TypeToRender.Element].Render(Mode.IsDeformed);
             if (Mode.Node) _scenes[TypeToRender.Node].Render(Mode.IsDeformed);
+
+            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
             if (Mode.Constraint) _scenes[TypeToRender.Constraint].Render(Mode.IsDeformed);
             if (Mode.LoadNode) _scenes[TypeToRender.LoadNode].Render(Mode.IsDeformed);
             if (Mode.LoadLine) _scenes[TypeToRender.LoadLine].Render(Mode.IsDeformed);

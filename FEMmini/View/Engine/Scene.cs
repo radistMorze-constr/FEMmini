@@ -17,6 +17,7 @@ namespace Engine
         fragBase,
         vertConstraint,
         fragConstraint,
+        geomConstraint,
         vertLoad,
         fragLoad,
         geomLoad,
@@ -99,9 +100,14 @@ namespace Engine
     }
     public class SceneConstraint : Scene
     {
-        public SceneConstraint(Camera2D camera, string shaderVert, string shaderFrag) : base(camera, shaderVert, shaderFrag)
+        public SceneConstraint(Camera2D camera, string shaderVert, string shaderFrag, string shaderGeom)
         {
+            _camera = camera;
             _primitiveType = PrimitiveType.Points;
+            _vao = new ArrayObject();
+            _vaoDeformed = new ArrayObject();
+            _shader = new Shader(shaderVert, shaderFrag, shaderGeom);
+            _shader.Use();
         }
         protected override void SetSettings()
         {
