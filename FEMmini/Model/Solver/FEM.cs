@@ -24,7 +24,7 @@ namespace FEMmini
         public Dictionary<int, LineLoad> LoadsLine { get; private set; } = new Dictionary<int, LineLoad>();
         public Dictionary<int, SurfaceLoad> LoadsSurface { get; private set; } = new Dictionary<int, SurfaceLoad>();
         private Dictionary<int, Constraints> _constraints = new Dictionary<int, Constraints>();
-        private Dictionary<int, SolutionProperties> _solutionProperties = new Dictionary<int, SolutionProperties>();
+        private Dictionary<int, PhaseCharacteristics> _phaseCharacteristics = new Dictionary<int, PhaseCharacteristics>();
         public Dictionary<SolutionID, Solution> Solutions { get; private set; } = new Dictionary<SolutionID, Solution>();
         private SolutionID _solutionID;
 
@@ -34,7 +34,6 @@ namespace FEMmini
         public FEM(DrawGeometry geom)
         {
             _geometry = geom;
-            //_solver = new SolverPlaneLinear(ProblemType, _geometry, _properties);
         }
 
         public void Initialize(Dictionary<int, NodeLoad> loadsNode,
@@ -42,24 +41,24 @@ namespace FEMmini
             Dictionary<int, SurfaceLoad> loadsSurface,
             Dictionary<int, Constraints> constraints, 
             Dictionary<int, MaterialModel> properties,
-            Dictionary<int, SolutionProperties> solutionProperties)
+            Dictionary<int, PhaseCharacteristics> phaseCharacteristics)
         {
             LoadsNoad = loadsNode;
             LoadsLine = loadsLine;
             LoadsSurface =  loadsSurface;
             _constraints = constraints;
             _properties = properties;
-            _solutionProperties = solutionProperties;
-            _solver = new SolverPlaneLinear(ProblemType, _geometry, _properties);
+            _phaseCharacteristics = phaseCharacteristics;
+            _solver = new SolverPlaneLinear(ProblemType, _geometry, _phaseCharacteristics, _properties);
         }
             
         public Solution GetSolution(SolutionID id) 
         {
             return Solutions[id];
         }
-        public SolutionProperties GetSolutionProperty(int phaseId)
+        public PhaseCharacteristics GetPhaseCharacteristics(int phaseId)
         {
-            return _solutionProperties[phaseId];
+            return _phaseCharacteristics[phaseId];
         }
         public Load GetLoad(int loadId)
         {
@@ -117,7 +116,7 @@ namespace FEMmini
 
         public void Solve()
         {
-            foreach(var solutionProperty in _solutionProperties.Values)
+            foreach(var solutionProperty in _phaseCharacteristics.Values)
             {
                 var count = solutionProperty.CountSteps;
                 for (int i = 0; i < count; i++) 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FEMmini;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,6 +7,17 @@ using System.Threading.Tasks;
 
 namespace Common
 {
+    public enum VBOEnum
+    {
+        Node,
+        NodeDeformed,
+        Element,
+        ElementDeformed,
+        LoadLine,
+        ConstraintType,
+        LoadValue,
+        LaodAngel
+    }
     public struct VisibleRectangle 
     {
         public float MinX, MaxX, MinY, MaxY;
@@ -79,22 +91,25 @@ namespace Common
     }
     public class DataContainerToRender 
     {
-        public DataContainerToRender(int vertNodes, int indicesNodes, int indicesElementsNodes, int indicesConstraints, 
-            int indicesLoadNode, int allElementCount, int currentElementCount,
+        public DataContainerToRender(int vertNodes, int indicesNodes, int currentElementCount, int indicesConstraints, 
+            int indicesLoadNode, int allElementCount,
             int indicesLoadSurface, int lineLoadCount)
         {
             VertNodes = new float[3 * vertNodes];
             VertNodesDeformed = new float[3 * vertNodes];
             IndicesNodes = new uint[indicesNodes];
-            IndicesElementsNodes = new uint[3 * indicesElementsNodes];
+            IndicesElementsNodes = new uint[3 * currentElementCount];
             IndicesConstraints = new uint[indicesConstraints];
+            ConstraintsTypes = new float[indicesConstraints];
             IndicesLoadNode = new uint[indicesLoadNode];
             VertElementCenter = new float[3 * allElementCount];
             VertElementCenterDeformed = new float[3 * currentElementCount];
-            IndicesElementCenter = new uint[indicesElementsNodes];
+            IndicesElementCenter = new uint[currentElementCount];
             IndicesLoadSurface = new uint[indicesLoadSurface];
             VertLoadLineCenter = new float[3 * lineLoadCount];
             IndicesLoadLine = new uint[lineLoadCount];
+            LoadValue = new float[lineLoadCount];
+            LoadAngle = new float[lineLoadCount];
         }
         /// <summary>
         /// Координаты всех узлов в схеме
@@ -116,6 +131,10 @@ namespace Common
         /// Индексы узлов со связями
         /// </summary>
         public uint[] IndicesConstraints{ get; set; }
+        /// <summary>
+        /// Идентификаторы типов связей: 0(X), 1(Y), 2(XY)
+        /// </summary>
+        public float[] ConstraintsTypes { get; set; }
         /// <summary>
         /// Индексы узлов с нагрузкой
         /// </summary>
@@ -144,5 +163,13 @@ namespace Common
         /// Индексы с линейными нагрузками на текущей фазе
         /// </summary>
         public uint[] IndicesLoadLine { get; set; }
+        /// <summary>
+        /// Коэффициенты нагрузки от максимума (модуль длины для рендера)
+        /// </summary>
+        public float[] LoadValue { get; set; }
+        /// <summary>
+        /// Углы наклона нагрузок
+        /// </summary>
+        public float[] LoadAngle { get; set; }
     }
 }

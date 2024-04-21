@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Common;
 using ScottPlot.Drawing.Colormaps;
 using Engine;
+using System.Data;
+using System.Threading.Tasks.Sources;
 
 namespace FEMmini
 {
@@ -29,19 +31,20 @@ namespace FEMmini
         public DataContainerToRender ConvertSolutionData(SolutionID id, float multipleDeform)
         {
             var solution = _solver.GetSolution(id);
-            var solutionProperty = _solver.GetSolutionProperty(id.IndexPhase);
+            var phaseCharacteristics = _solver.GetPhaseCharacteristics(id.IndexPhase);
             var phase = solution.ID.IndexPhase;
-            var meshset = _geometry.MeshSetPhase[phase];
+            var meshSetIds = phaseCharacteristics.MeshsetIDs;
+            var nodesId = phaseCharacteristics.NodeIDs;
+            var elementsId = phaseCharacteristics.ElementIDs;
             var loadNode = _solver.LoadsNoad;
             var loadLine = _solver.LoadsLine;
             var loadSurface = _solver.LoadsSurface;
             var result = new DataContainerToRender(_geometry.Nodes.Count,
-                meshset.NodeActiveID.Count,
-                meshset.ElementActiveID.Count,
-                solutionProperty.ConstraintIDs.Count,
+                nodesId.Count,
+                elementsId.Count,
+                phaseCharacteristics.ConstraintIDs.Count,
                 loadNode.Count,
                 _geometry.Elements.Count,
-                meshset.ElementActiveID.Count,
                 loadSurface.Count,
                 loadLine.Count);
             //VertNodes
@@ -60,22 +63,31 @@ namespace FEMmini
                 result.VertNodesDeformed[index + 1] += (float)nodeResult.FullDeflectionY * multipleDeform;
             }
             //IndicesNodes
-            result.IndicesNodes = meshset.NodeActiveID.Select(x => (uint)(x-1)).ToArray();
+            result.IndicesNodes = nodesId.Select(x => (uint)(x-1)).ToArray();
             //IndicesElementsNodes
             int i = 0;
-            foreach(var elemId in meshset.ElementActiveID)
+            foreach(var elemId in elementsId)
             {
                 var nodes = _geometry.Elements[elemId].Nodes;
                 result.IndicesElementsNodes[i] = (uint)(nodes[0] - 1);
                 result.IndicesElementsNodes[i + 1] = (uint)(nodes[1] - 1);
                 result.IndicesElementsNodes[i + 2] = (uint)(nodes[2] - 1);
-                i += 3; //вроде бы надо индекс увеличить, наощуп действую
+                i += 3;
             }
             //IndicesConstraints
-            var constraints = _solver.GetConstraint(solutionProperty.ConstraintIDs[0]);
-            result.IndicesConstraints = constraints.Nodes.Select(x => (uint)(x - 1)).ToArray();
+            var indicesConstraints = new List<int>();
+            var constraintsTypes = new List<float>();
+            foreach (var constraintId in phaseCharacteristics.ConstraintIDs)
+            {
+                var constraint = _solver.GetConstraint(constraintId);
+                indicesConstraints.AddRange(constraint.Nodes);
+                constraintsTypes.AddRange(Enumerable.Repeat((float)constraint.Type, 5 * constraint.Nodes.Count));
+            }
+            result.IndicesConstraints = indicesConstraints.Select(x => (uint)(x - 1)).ToArray();
+            //ConstraintsTypes
+            result.ConstraintsTypes = constraintsTypes.ToArray();
             //IndicesLoadNode
-            result.IndicesLoadNode = solutionProperty.LoadNodeIDs.Select(x => (uint)x).ToArray();
+            result.IndicesLoadNode = phaseCharacteristics.LoadNodeIDs.Select(x => (uint)x).ToArray();
             //VertElementCenter
             foreach (var elem in _geometry.Elements.Values)
             {
@@ -89,7 +101,7 @@ namespace FEMmini
             }
             //VertElementCenterDeformed
             result.VertElementCenter.CopyTo(result.VertElementCenterDeformed, 0);
-            foreach (var elemId in meshset.ElementActiveID)
+            foreach (var elemId in elementsId)
             {
                 var nodes = _geometry.Elements[elemId].Nodes;
                 var node1 = nodes[0];
@@ -101,9 +113,9 @@ namespace FEMmini
                 result.VertElementCenterDeformed[elemId + 1] = y;
             }
             //IndicesElementCenter
-            result.IndicesElementCenter = meshset.ElementActiveID.Select(x => (uint)x).ToArray();
+            result.IndicesElementCenter = elementsId.Select(x => (uint)x).ToArray();
             //IndicesLoadSurface
-            result.IndicesLoadSurface = solutionProperty.LoadSurfaceIDs.Select(x => (uint)x).ToArray();
+            result.IndicesLoadSurface = phaseCharacteristics.LoadSurfaceIDs.Select(x => (uint)x).ToArray();
             //VertLoadLineCenter
             foreach (var load in loadLine.Values)
             {
@@ -119,7 +131,30 @@ namespace FEMmini
                 }
             }
             //IndicesLoadLine
-            result.IndicesLoadLine = solutionProperty.LoadLineIDs.Select(x => (uint)x).ToArray();
+            var indicesLoadLine = new List<int>();
+            var loadValues = new List<float>();
+            var loadAngles = new List<float>();
+            var loadMax = float.MinValue;
+            foreach (var loadID in phaseCharacteristics.LoadLineIDs)
+            {
+                var load = loadLine[loadID];
+                var loadXY = Math.Sqrt(load.ForceX * load.ForceX + load.ForceY * load.ForceY);
+                if (loadMax < Math.Abs(loadXY))
+                {
+                    loadMax = (float)Math.Abs(loadXY);
+                }
+                var loadAngle = load.ForceX / load.ForceY;
+                //loadValues.AddRange()
+                foreach (var loadTuple in load.Nodes)
+                {
+                    indicesLoadLine.Add(loadTuple.Item1);
+                    indicesLoadLine.Add(loadTuple.Item2);
+                }
+            }
+            result.IndicesLoadLine = indicesLoadLine.Select(x => (uint)(x - 1)).ToArray();
+            //LoadValue
+            
+
 
             return result;
         }
@@ -127,9 +162,9 @@ namespace FEMmini
         {
             var result = new List<string>();
             var solution = _solver.GetSolution(id);
-            var solutionProperty = _solver.GetSolutionProperty(id.IndexPhase);
+            var solutionProperty = _solver.GetPhaseCharacteristics(id.IndexPhase);
             var phase = solution.ID.IndexPhase;
-            var meshset = _geometry.MeshSetPhase[phase];
+            var meshset = _geometry.MeshSets[phase];
             var loadNode = _solver.LoadsNoad;
             var loadLine = _solver.LoadsLine;
             var loadSurface = _solver.LoadsSurface;
@@ -138,7 +173,7 @@ namespace FEMmini
                 var enumValue = ConvertToEnum<VisualNodeText>(enumType);
                 if (enumValue == VisualNodeText.Id)
                 {
-                    result = meshset.NodeActiveID.Select(x => x.ToString()).ToList();
+                    //result = meshset.NodeActiveID.Select(x => x.ToString()).ToList();
                 }
                 if (enumValue == VisualNodeText.LoadNodeValue)
                 {
@@ -168,11 +203,11 @@ namespace FEMmini
                 var enumValue = ConvertToEnum<VisualElementText>(enumType);
                 if (enumValue == VisualElementText.Id)
                 {
-                    result = meshset.ElementActiveID.Select(x => x.ToString()).ToList();
+                    result = meshset.ElementsID.Select(x => x.ToString()).ToList();
                 }
                 if (enumValue == VisualElementText.Stiffness)
                 {
-                    foreach (var elem in meshset.ElementActiveID)
+                    foreach (var elem in meshset.ElementsID)
                     {
                         var prop = _geometry.Elements[elem];
                         result.Add(prop.Properties.ToString());

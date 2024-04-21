@@ -44,18 +44,13 @@ namespace FEMmini
     {
         public int Id { get; set; }
         /// <summary>
-        /// Номера активных элементов
+        /// Номера элементов мешсета
         /// </summary>
-        public List<int> ElementActiveID { get; set; }
-        /// <summary>
-        /// Номера активных узлов
-        /// </summary>
-        public List<int> NodeActiveID { get; set; }
-        public MeshSet(int id, List<int> elementActiveID, List<int> nodeActiveID)
+        public List<int> ElementsID { get; set; }
+        public MeshSet(int id, List<int> elementActiveID)
         {
             Id = id;
-            ElementActiveID = elementActiveID;
-            NodeActiveID = nodeActiveID;
+            ElementsID = elementActiveID;
         }
     }
 
@@ -66,7 +61,7 @@ namespace FEMmini
         /// <summary>
         /// Наборы геометрии по фазам
         /// </summary>
-        public Dictionary<int, MeshSet> MeshSetPhase { get; private set; }
+        public Dictionary<int, MeshSet> MeshSets { get; private set; }
         public VisibleRectangle Borders { get; private set; }
         public DrawGeometry()
         {
@@ -77,34 +72,7 @@ namespace FEMmini
         {
             Elements = elements;
             Nodes = nodes;
-            MeshSetPhase = meshSetPhase;
-
-            //FindLimits();
+            MeshSets = meshSetPhase;
         }
-        /*
-        private void FindLimits()
-        {
-            var MinX = double.MaxValue; var MinY = double.MaxValue;
-            var MaxX = double.MinValue; var MaxY = double.MinValue;
-
-            foreach(var node in Nodes)
-            {
-                if (node.Value.X > MaxX) { MaxX = node.Value.X; }
-                if (node.Value.X < MinX) { MinX = node.Value.X; }
-
-                if (node.Value.Y > MaxY) { MaxY = node.Value.Y; }
-                if (node.Value.Y < MinY) { MinY = node.Value.Y; }
-            }
-
-            var dx = MaxX - MinX;
-            var dy = MaxY - MinY;
-
-            MinX -= 0.1 * dx;
-            MaxX += 0.1 * dx;
-            MinY -= 0.1 * dy;
-            MaxY += 0.1 * dy;
-            Borders = new VisibleRectangle((float)MaxX, (float)MinX, (float)MaxY, (float)MinY);
-        }
-        */
     }
 }

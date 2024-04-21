@@ -170,6 +170,11 @@ namespace FEMmini
             get => _renderer.Mode.Constraint;
             set => _renderer.Mode.Constraint = value;
         }
+        public bool ModeLoad
+        {
+            get => _renderer.Mode.LoadLine;
+            set => _renderer.Mode.LoadLine = value;
+        }
         public SolutionID SolutionID
         {
             get => _manager.SolutionID;

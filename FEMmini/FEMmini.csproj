@@ -46,7 +46,10 @@
     <None Update="View\Engine\Shaders\shaderForces.frag">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="View\Engine\Shaders\shaderForces.glsl">
+    <None Update="View\Engine\Shaders\shaderForcesNode.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="View\Engine\Shaders\shaderForcesLine.glsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="View\Engine\Shaders\shaderForces.vert">

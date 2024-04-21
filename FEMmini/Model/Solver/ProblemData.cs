@@ -16,7 +16,7 @@ namespace FEMmini
         NonLinear
     }
 
-    public class SolutionProperties
+    public class PhaseCharacteristics
     {
         public int IndexPhase { get; set; }
         public int CountSteps { get; set; }
@@ -37,19 +37,41 @@ namespace FEMmini
         /// </summary>
         public List<int> LoadSurfaceIDs { get; set; }
         /// <summary>
-        /// Индексы групп КЭ сетки активных на текущей фазе
+        /// Индексы мешсетов, добавленных на текущей фазе
         /// </summary>
-        //public List<int> MeshsetIDs { get; set; }
+        public List<int> MeshsetIDsAdded { get; set; }
+        /// <summary>
+        /// Индексы мешсетов, удаленных на текущей фазе
+        /// </summary>
+        public List<int> MeshsetIDsDeleted { get; set; }
+        /// <summary>
+        /// Индексы активных мешсетов на текущей фазе
+        /// </summary>
+        public List<int> MeshsetIDs{ get; set; }
+        /// <summary>
+        /// Индексы активных узлов на текущей фазе
+        /// </summary>
+        public List<int> NodeIDs { get; set; }
+        /// <summary>
+        /// Индексы активных элементов на текущей фазе
+        /// </summary>
+        public List<int> ElementIDs { get; set; }
 
-        public SolutionProperties(int indexPhase, int countSteps, List<int> constraintIDs, List<int> loadNodeIDs, List<int> loadLineIDs, List<int> loadSurfaceIDs)
+        public PhaseCharacteristics(int indexPhase, int countSteps, List<int> meshsetIDsAdded, List<int> meshsetIDsDeleted, List<int> meshsetIDs, 
+            List<int> constraintIDs, List<int> loadNodeIDs, List<int> loadLineIDs, List<int> loadSurfaceIDs,
+            List<int> nodeIDs, List<int> elementIDs)
         {
             IndexPhase = indexPhase;
             CountSteps = countSteps;
+            MeshsetIDsAdded = meshsetIDsAdded;
+            MeshsetIDsDeleted = meshsetIDsDeleted;
             ConstraintIDs = constraintIDs;
             LoadNodeIDs = loadNodeIDs;
             LoadLineIDs = loadLineIDs;
             LoadSurfaceIDs = loadSurfaceIDs;
-            //MeshsetIDs = meshsetIDs;
+            MeshsetIDs = meshsetIDs;
+            NodeIDs = nodeIDs;
+            ElementIDs = elementIDs;
         }
     }
 

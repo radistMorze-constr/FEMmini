@@ -42,7 +42,7 @@
         <CheckBox x:Name="checkDirihle" IsChecked="{Binding VisualMode.ModeConstraint}" Content="Закрепления"/>
         <CheckBox x:Name="checkProperties" IsChecked="{Binding VisualMode.Mode.Stiffness}" Content="Тип жесткости"/>
         <TextBlock Margin="0 10 0 0">Внешние нагрузки:</TextBlock>
-        <CheckBox x:Name="checkNeyman" IsChecked="{Binding VisualMode.Mode.LoadLine}" Content="Нагрузки на ребра"/>
+        <CheckBox x:Name="checkNeyman" IsChecked="{Binding VisualMode.ModeLoad}" Content="Нагрузки на ребра"/>
         <TextBlock Margin="0 10 0 0">Результаты в узлах:</TextBlock>
         <RadioButton GroupName="TypeResult" IsChecked="{Binding Path=VisualMode.NodeResult, Converter={StaticResource EnumsIEnumerableConverter}, ConverterParameter={x:Static common:VisualNodeText.DeflectionX}}">Перемещения X</RadioButton>
         <RadioButton GroupName="TypeResult" IsChecked="{Binding Path=VisualMode.NodeResult, Converter={StaticResource EnumsIEnumerableConverter}, ConverterParameter={x:Static common:VisualNodeText.DeflectionY}}">Перемещения Y</RadioButton>

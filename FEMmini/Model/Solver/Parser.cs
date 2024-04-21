@@ -21,12 +21,12 @@ namespace FEMmini
         public Dictionary<int, Element> Elements { get; set; } = new Dictionary<int, Element>();
         public Dictionary<int, Node> Nodes { get; set; } = new Dictionary<int, Node>();
         public Dictionary<int, MaterialModel> Properties { get; set; } = new Dictionary<int, MaterialModel>();
-        public Dictionary<int, MeshSet> MeshSetPhase { get; set; } = new Dictionary<int, MeshSet>();
+        public Dictionary<int, MeshSet> MeshSets { get; set; } = new Dictionary<int, MeshSet>();
         public Dictionary<int, NodeLoad> LoadsNode { get; set; } = new Dictionary<int, NodeLoad>();
         public Dictionary<int, LineLoad> LoadsLine { get; set; } = new Dictionary<int, LineLoad>();
         public Dictionary<int, SurfaceLoad> LoadsSurface { get; set; } = new Dictionary<int, SurfaceLoad>();
         public Dictionary<int, Constraints> Constraints { get; set; } = new Dictionary<int, Constraints>();
-        public Dictionary<int, SolutionProperties> SolutionProperties { get; set; } = new Dictionary<int, SolutionProperties>();
+        public Dictionary<int, PhaseCharacteristics> PhaseCharacteristics { get; set; } = new Dictionary<int, PhaseCharacteristics>();
         public TextProblemData() { }
     }
 
@@ -77,7 +77,7 @@ namespace FEMmini
                             ReadElements(reader, problemData);
                             break;
                         case "<Набор геометрии Meshset>":
-                            ReadMeshSetPhase(reader, problemData);
+                            ReadMeshSets(reader, problemData);
                             break;
                         case "<Нагрузки>":
                             ReadLoads(reader, problemData);
@@ -145,7 +145,7 @@ namespace FEMmini
             }
         }
 
-        public static void ReadMeshSetPhase(StreamReader reader, TextProblemData problemData)
+        public static void ReadMeshSets(StreamReader reader, TextProblemData problemData)
         {
             string line;
             while ((line = ReadLine(reader)) != null)
@@ -163,8 +163,7 @@ namespace FEMmini
             string line;
             var id = int.Parse(reader.ReadLine());
             var elements = Array.ConvertAll(reader.ReadLine().Split(' '), int.Parse);
-            var nodes = Array.ConvertAll(reader.ReadLine().Split(' '), int.Parse);
-            problemData.MeshSetPhase[id] = new MeshSet(id, elements.ToList(), nodes.ToList());
+            problemData.MeshSets[id] = new MeshSet(id, elements.ToList());
             reader.ReadLine();
         }
 
@@ -263,11 +262,37 @@ namespace FEMmini
         {
             var id = int.Parse(ReadLine(reader));
             var count = int.Parse(ReadLine(reader));
+            var id_meshsetsAdded = ReadId(reader);
+            var id_meshsetsDeleted = ReadId(reader);
+            var id_meshsets = new List<int>(id_meshsetsAdded);
+            if (id > 0)
+            {
+                id_meshsets = id_meshsets.Union(problemData.PhaseCharacteristics[id - 1].MeshsetIDs).Except(id_meshsetsDeleted).ToList();
+            }
+            id_meshsets = id_meshsets.Union(id_meshsetsAdded).Except(id_meshsetsDeleted).ToList();
             var id_constraints = ReadId(reader);
             var id_loadsNode = ReadId(reader);
             var id_loadsLine = ReadId(reader);
-            var id_loadsSurface = ReadId(reader); ;
-            problemData.SolutionProperties[id] = new SolutionProperties(id, count, id_constraints, id_loadsNode, id_loadsLine, id_loadsSurface);
+            var id_loadsSurface = ReadId(reader);
+
+            var id_nodes = new List<int>();
+            var id_elements = new List<int>();
+            foreach(var id_meshset in id_meshsets)
+            {
+                var meshset = problemData.MeshSets[id_meshset];
+                id_elements.AddRange(meshset.ElementsID);
+            }
+            foreach(var id_element in id_elements)
+            {
+                var element = problemData.Elements[id_element];
+                id_nodes = id_nodes.Union(element.Nodes).ToList();
+            }
+            id_nodes.Sort();
+            id_elements.Sort();
+
+            problemData.PhaseCharacteristics[id] = new PhaseCharacteristics(id, count, id_meshsetsAdded, id_meshsetsDeleted, id_meshsets, 
+                id_constraints, id_loadsNode, id_loadsLine, id_loadsSurface,
+                id_nodes, id_elements);
             ReadLine(reader);
         }
 

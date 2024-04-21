@@ -71,7 +71,7 @@ namespace Engine
             // When the shader program is linked, it no longer needs the individual shaders attached to it; the compiled code is copied into the shader program.
             // Detach them, and then delete them.
             GL.DetachShader(Handle, vertexShader);
-            GL.DetachShader(Handle, geomShader);
+            GL.DetachShader(Handle, fragmentShader);
             GL.DeleteShader(fragmentShader);
             GL.DeleteShader(vertexShader);
             if (geomPath != null)

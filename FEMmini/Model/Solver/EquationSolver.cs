@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Printing;
 using System.Text;
@@ -18,9 +19,11 @@ namespace FEMmini
 
         private ProblemType _problemType;
         private readonly DrawGeometry _geometry;
+        private readonly Dictionary<int, PhaseCharacteristics> _phaseCharacteristics;
         private readonly Dictionary<int, MaterialModel> _properties;
         private Dictionary<int, double> _elementDeterminantC;
         private Dictionary<int, Matrix<double>> _elementMatrixB;
+        /// <summary>
         /// Основной контейнер для результатов, постепенно по шагам накапливает и потом копируется в объект FEM
         /// </summary>
         private Dictionary<int, ResultNode> _nodesResult = new Dictionary<int, ResultNode>();
@@ -29,10 +32,11 @@ namespace FEMmini
         /// </summary>
         private Dictionary<int, ResultElement> _elementResult = new Dictionary<int, ResultElement>();
 
-        public EquationSolver(ProblemType problemType, DrawGeometry geometry, Dictionary<int, MaterialModel> properties)
+        public EquationSolver(ProblemType problemType, DrawGeometry geometry, Dictionary<int, PhaseCharacteristics> phaseCharacteristics, Dictionary<int, MaterialModel> properties)
         {
             _problemType = problemType;
             _geometry = geometry;
+            _phaseCharacteristics = phaseCharacteristics;
             _properties = properties;
             _elementMatrixB = new Dictionary<int, Matrix<double>>();
             _elementDeterminantC = new Dictionary<int, double>();
@@ -135,32 +139,32 @@ namespace FEMmini
         public virtual void SolveEquations(IEnumerable<Load> iteratorLoad, IEnumerable<Constraints> iteratorConstraint, Solution current)
         {
             PrepareSolver();
-            var phase = current.ID.IndexPhase;
-            var meshset = _geometry.MeshSetPhase[phase];
-            var nodesCount = meshset.NodeActiveID.Count;
-            var size = 2 * (nodesCount);
+            var id_phase = current.ID.IndexPhase;
+            var phaseCharacteristics = _phaseCharacteristics[id_phase];
+            var nodes = phaseCharacteristics.NodeIDs;
+            var size = 2 * (nodes.Count);
             var globalMatrix = Matrix<double>.Build.Dense(size, size, 0);
             var globalRight = Vector<double>.Build.Dense(size);
 
             CombineGlobal(globalMatrix);
-            /*
-            var path = "D:\\PetProjects\\3D_graphics\\Second task\\newIter\\GlobalMatrixBeforeGU.txt";
+            
+            var path = "D:\\PetProjects\\3D_graphics\\Frame geometry Second\\newIter\\GlobalMatrixBeforeGU.txt";
             Parser.WriteMatrix(path, globalMatrix);
-            */
+            
             ApplyLoads(iteratorLoad, globalRight);
             ApplyConstraints(iteratorConstraint, globalRight, globalMatrix);
-            /*
-            path = "D:\\PetProjects\\3D_graphics\\Second task\\newIter\\GlobalMatrix.txt";
+            
+            path = "D:\\PetProjects\\3D_graphics\\Frame geometry Second\\newIter\\GlobalMatrix.txt";
             Parser.WriteMatrix(path, globalMatrix);
-            path = "D:\\PetProjects\\3D_graphics\\Second task\\newIter\\RightVector.txt";
+            path = "D:\\PetProjects\\3D_graphics\\Frame geometry Second\\newIter\\RightVector.txt";
             Parser.WriteVector(path, globalRight);
-            */
+            
             var solution = globalMatrix.Solve(globalRight);
-            /*
-            path = "D:\\PetProjects\\3D_graphics\\Second task\\newIter\\solutionVector.txt";
+            
+            path = "D:\\PetProjects\\3D_graphics\\Frame geometry Second\\newIter\\solutionVector.txt";
             Parser.WriteVector(path, solution);
-            */
-            foreach (var node in meshset.NodeActiveID)
+            
+            foreach (var node in nodes)
             {
                 _nodesResult[node].Increase(solution[2 * (node - 1)], solution[2 * (node - 1) + 1]);
             }
@@ -169,13 +173,16 @@ namespace FEMmini
         }
         private void UpdateSolution(Solution solution) 
         {
-            var phase = solution.ID.IndexPhase;
-            var meshset = _geometry.MeshSetPhase[phase];
-            foreach (var node in meshset.NodeActiveID)
+            var id_phase = solution.ID.IndexPhase;
+            var phaseCharacteristics = _phaseCharacteristics[id_phase];
+            var nodes = phaseCharacteristics.NodeIDs;
+            var elements = phaseCharacteristics.ElementIDs;
+
+            foreach (var node in nodes)
             {
                 solution.NodesResult[node] = new ResultNode(_nodesResult[node]);
             }
-            foreach (var elem in meshset.ElementActiveID)
+            foreach (var elem in elements)
             {
                 solution.ElementResult[elem] = new ResultElement(_elementResult[elem]);
             }
@@ -232,14 +239,14 @@ namespace FEMmini
 
     public class SolverPlaneLinear : EquationSolver
     {
-        public SolverPlaneLinear(ProblemType problemType, DrawGeometry geometry, Dictionary<int, MaterialModel> properties) : 
-            base(problemType, geometry, properties) { }
+        public SolverPlaneLinear(ProblemType problemType, DrawGeometry geometry, Dictionary<int, PhaseCharacteristics> phaseCharacteristics, Dictionary<int, MaterialModel> properties) : 
+            base(problemType, geometry, phaseCharacteristics, properties) { }
     }
 
     public class SolverPlaneNonLinear : EquationSolver
     {
-        public SolverPlaneNonLinear(ProblemType problemType, DrawGeometry geometry, Dictionary<int, MaterialModel> properties) : 
-            base(problemType, geometry, properties) { }
+        public SolverPlaneNonLinear(ProblemType problemType, DrawGeometry geometry, Dictionary<int, PhaseCharacteristics> phaseCharacteristics, Dictionary<int, MaterialModel> properties) : 
+            base(problemType, geometry, phaseCharacteristics, properties) { }
         public virtual void SolveEquations(List<Load> loads, List<Constraints> constraints, Solution current)
         {
             /*

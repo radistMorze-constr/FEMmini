@@ -32,7 +32,6 @@ namespace Engine
     {
         protected Camera2D _camera;
         protected ArrayObject _vao;
-        protected ArrayObject _vaoDeformed;
         protected Shader _shader;
         protected PrimitiveType _primitiveType;
         protected Scene() { }
@@ -40,29 +39,51 @@ namespace Engine
         {
             _camera = camera;
             _vao = new ArrayObject();
-            _vaoDeformed = new ArrayObject();
             _shader = new Shader(shaderVert, shaderFrag);
             _shader.Use();
         }
-        public virtual void Initialize(BufferObject vbo, BufferObject vboDeformed, uint[] indices)
-        {
-            _shader.Use();
-            var vertexLocation = _shader.GetAttribLocation("aPosition");
-            _vao.Initialize(vbo, indices);
-            _vao.AttribPointer(vertexLocation, 3, AttribType.Float, 3 * sizeof(float), 0);
-            _vao.Deactivate();
-
-            _vaoDeformed.Initialize(vboDeformed, indices);
-            _vaoDeformed.AttribPointer(vertexLocation, 3, AttribType.Float, 3 * sizeof(float), 0);
-            _vaoDeformed.Deactivate();
-        }
+        public abstract void Initialize(uint[] indices, params BufferObject[] vbos);
         protected virtual void SetSettings() 
         {
             GL.PointSize(0);
         }
-        public virtual void Render(bool isDeformed)
+        public abstract void Render(bool isDeformed = false); 
+        public virtual void Draw()
         {
             var model = Matrix4.Identity;
+            SetSettings();
+            _shader.Use();
+            _shader.SetMatrix4("model", model);
+            _shader.SetMatrix4("view", _camera.GetViewMatrix());
+            _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+            GL.DrawElements(_primitiveType, _vao.Count, DrawElementsType.UnsignedInt, 0);
+        }
+    }
+    public abstract class SceneGeometry : Scene
+    {
+        protected ArrayObject _vaoDeformed;
+        protected SceneGeometry() { }
+        protected SceneGeometry(Camera2D camera, string shaderVert, string shaderFrag) : base(camera, shaderVert, shaderFrag)
+        {
+            _vaoDeformed = new ArrayObject();
+        }
+        public override void Initialize(uint[] indices, params BufferObject[] vbos)
+        {
+            var vbo = vbos[0];
+            var vboDeformed = vbos[1];
+
+            _shader.Use();
+            var vertexLocation = _shader.GetAttribLocation("aPosition");
+            _vao.Initialize(vbo, indices);
+            _vao.AttribPointer(VBOEnum.Node, vertexLocation, 3, AttribType.Float, 3 * sizeof(float), 0);
+            _vao.Deactivate();
+
+            _vaoDeformed.Initialize(vboDeformed, indices);
+            _vaoDeformed.AttribPointer(VBOEnum.Node, vertexLocation, 3, AttribType.Float, 3 * sizeof(float), 0);
+            _vaoDeformed.Deactivate();
+        }
+        public override void Render(bool isDeformed = false)
+        {
             if (isDeformed)
             {
                 _vaoDeformed.Activate();
@@ -71,16 +92,10 @@ namespace Engine
             {
                 _vao.Activate();
             }
-            SetSettings();
-            _shader.Use();
-            _shader.SetMatrix4("model", model);
-            _shader.SetMatrix4("view", _camera.GetViewMatrix());
-            _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
-            GL.DrawElements(_primitiveType, _vao.Count, DrawElementsType.UnsignedInt, 0);
-            _vao.Deactivate();
+            Draw();
         }
     }
-    public class SceneNode : Scene
+    public class SceneNode : SceneGeometry
     {
         public SceneNode(Camera2D camera, string shaderVert, string shaderFrag) : base(camera, shaderVert, shaderFrag) 
         {
@@ -91,14 +106,14 @@ namespace Engine
             GL.PointSize(3);
         }
     }
-    public class SceneElement : Scene
+    public class SceneElement : SceneGeometry
     {
         public SceneElement(Camera2D camera, string shaderVert, string shaderFrag) : base(camera, shaderVert, shaderFrag)
         {
             _primitiveType = PrimitiveType.Triangles;
         }
     }
-    public class SceneConstraint : Scene
+    public class SceneConstraint : SceneGeometry
     {
         public SceneConstraint(Camera2D camera, string shaderVert, string shaderFrag, string shaderGeom)
         {
@@ -108,6 +123,28 @@ namespace Engine
             _vaoDeformed = new ArrayObject();
             _shader = new Shader(shaderVert, shaderFrag, shaderGeom);
             _shader.Use();
+        }
+        public override void Initialize(uint[] indices, params BufferObject[] vbos)
+        {
+            var vbo = vbos[0];
+            var vboDeformed = vbos[1];
+            var vboConstraintType = vbos[2];
+
+            _shader.Use();
+            var vertexLocation = _shader.GetAttribLocation("aPosition");
+            var constraintType = _shader.GetAttribLocation("aConstraintType");
+
+            _vao.Initialize(vbo, indices);
+            _vao.AttachBuffer(VBOEnum.ConstraintType, vboConstraintType);
+            _vao.AttribPointer(VBOEnum.Node, vertexLocation, 3, AttribType.Float, 3 * sizeof(float), 0);
+            _vao.AttribPointer(VBOEnum.ConstraintType, constraintType, 1, AttribType.Float, 1 * sizeof(float), 0);
+            _vao.Deactivate();
+
+            _vaoDeformed.Initialize(vboDeformed, indices);
+            _vaoDeformed.AttachBuffer(VBOEnum.ConstraintType, vboConstraintType);
+            _vaoDeformed.AttribPointer(VBOEnum.Node, vertexLocation, 3, AttribType.Float, 3 * sizeof(float), 0);
+            _vaoDeformed.AttribPointer(VBOEnum.ConstraintType, constraintType, 1, AttribType.Float, 1 * sizeof(float), 0);
+            _vaoDeformed.Deactivate();
         }
         protected override void SetSettings()
         {
@@ -123,21 +160,22 @@ namespace Engine
             _shader = new Shader(shaderVert, shaderFrag, shaderGeom);
             _shader.Use();
         }
-        public override void Render(bool isDeformed)
+        public override void Initialize(uint[] indices, params BufferObject[] vbos)
         {
-            if (isDeformed) 
-            {
-                return;
-            }
-            base.Render(isDeformed);
-        }
-        public override void Initialize(BufferObject vbo, BufferObject vboDeformed, uint[] indices)
-        {
+            var vbo = vbos[0];
+            //var vboAngle = vbos[1];
+            //var vboLengthArrow = vbos[2];
+
             _shader.Use();
             var vertexLocation = _shader.GetAttribLocation("aPosition");
             _vao.Initialize(vbo, indices);
-            _vao.AttribPointer(vertexLocation, 3, AttribType.Float, 3 * sizeof(float), 0);
+            _vao.AttribPointer(VBOEnum.Node, vertexLocation, 3, AttribType.Float, 3 * sizeof(float), 0);
             _vao.Deactivate();
+        }
+        public override void Render(bool isDeformed = false)
+        {
+            _vao.Activate();
+            Draw();
         }
     }
     public class SceneLoadNode : SceneLoad
@@ -174,8 +212,16 @@ namespace Engine
             _shader.Use();
             _vao.Initialize(vbo, indices);
             var vertexLocation = _shader.GetAttribLocation("aPosition");
-            _vao.AttribPointer(vertexLocation, 3, AttribType.Float, 3 * sizeof(float), 0);
+            _vao.AttribPointer(VBOEnum.Node, vertexLocation, 3, AttribType.Float, 3 * sizeof(float), 0);
             _text = text;
+        }
+        public override void Render(bool isDeformed = false)
+        {
+            return;
+        }
+        public override void Initialize(uint[] indices, params BufferObject[] vbos)
+        {
+            return;
         }
     }
 }

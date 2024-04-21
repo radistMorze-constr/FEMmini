@@ -12,15 +12,6 @@ using static ScottPlot.Plottable.PopulationPlot;
 
 namespace Engine
 {
-    public enum VBOEnum
-    {
-        Node,
-        NodeDeformed,
-        Element,
-        ElementDeformed,
-        LoadLine
-    }
-
     public class Renderer : BindableBase
     {
         private Dictionary<TypeToRender, Scene> _scenes;
@@ -33,10 +24,10 @@ namespace Engine
             { ShaderSources.geomConstraint, "View/Engine/Shaders/shaderConstraint.glsl"},
             { ShaderSources.vertLoadLine, "View/Engine/Shaders/shaderForces.vert"},
             { ShaderSources.fragLoadLine, "View/Engine/Shaders/shaderForces.frag"},
-            { ShaderSources.geomLoadLine, "View/Engine/Shaders/shaderForces.glsl"},
+            { ShaderSources.geomLoadLine, "View/Engine/Shaders/shaderForcesLine.glsl"},
             { ShaderSources.vertLoad, "View/Engine/Shaders/shaderForces.vert"},
             { ShaderSources.fragLoad, "View/Engine/Shaders/shaderForces.frag"},
-            { ShaderSources.geomLoad, "View/Engine/Shaders/shaderForces.glsl"},
+            { ShaderSources.geomLoad, "View/Engine/Shaders/shaderForcesNode.glsl"},
             { ShaderSources.vertText, "View/Engine/Shaders/vTexture.glsl"},
             { ShaderSources.fragText, "View/Engine/Shaders/fTexture.glsl"}
         };
@@ -155,7 +146,7 @@ namespace Engine
             GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
             if (Mode.Constraint) _scenes[TypeToRender.Constraint].Render(Mode.IsDeformed);
             if (Mode.LoadNode) _scenes[TypeToRender.LoadNode].Render(Mode.IsDeformed);
-            if (Mode.LoadLine) _scenes[TypeToRender.LoadLine].Render(Mode.IsDeformed);
+            if (Mode.LoadLine) _scenes[TypeToRender.LoadLine].Render();
             if (Mode.LoadSurface) _scenes[TypeToRender.LoadSurface].Render(Mode.IsDeformed);
             if (Mode.Text) _scenes[TypeToRender.Text].Render(Mode.IsDeformed);
 
@@ -201,33 +192,39 @@ namespace Engine
                     vbo.SetData(dataContainer.VertLoadLineCenter, BufferUsageHint.StaticDraw);
                     _vboList[VBOEnum.LoadLine] = vbo;
                 }
+                if (dataContainer.ConstraintsTypes.Length > 0)
+                {
+                    var vbo = new BufferObject(BufferType.ArrayBuffer);
+                    vbo.SetData(dataContainer.ConstraintsTypes, BufferUsageHint.StaticDraw);
+                    _vboList[VBOEnum.ConstraintType] = vbo;
+                }
             }
 
             //Инициализация объектов сцены
             {
                 if (_vboList.ContainsKey(VBOEnum.Node) && dataContainer.IndicesNodes.Length > 0)
                 {
-                    _scenes[TypeToRender.Node].Initialize(_vboList[VBOEnum.Node], _vboList[VBOEnum.NodeDeformed], dataContainer.IndicesNodes);
+                    _scenes[TypeToRender.Node].Initialize(dataContainer.IndicesNodes, _vboList[VBOEnum.Node], _vboList[VBOEnum.NodeDeformed]);
                 }
                 if (_vboList.ContainsKey(VBOEnum.Node) && dataContainer.IndicesElementsNodes.Length > 0)
                 {
-                    _scenes[TypeToRender.Element].Initialize(_vboList[VBOEnum.Node], _vboList[VBOEnum.NodeDeformed], dataContainer.IndicesElementsNodes);
+                    _scenes[TypeToRender.Element].Initialize(dataContainer.IndicesElementsNodes, _vboList[VBOEnum.Node], _vboList[VBOEnum.NodeDeformed]);
                 }
                 if (_vboList.ContainsKey(VBOEnum.Node) && dataContainer.IndicesConstraints.Length > 0)
                 {
-                    _scenes[TypeToRender.Constraint].Initialize(_vboList[VBOEnum.Node], _vboList[VBOEnum.NodeDeformed], dataContainer.IndicesConstraints);
+                    _scenes[TypeToRender.Constraint].Initialize(dataContainer.IndicesConstraints, _vboList[VBOEnum.Node], _vboList[VBOEnum.NodeDeformed], _vboList[VBOEnum.ConstraintType]);
                 }
                 if (_vboList.ContainsKey(VBOEnum.Node) && dataContainer.IndicesLoadNode.Length > 0)
                 {
-                    _scenes[TypeToRender.LoadNode].Initialize(_vboList[VBOEnum.Node], _vboList[VBOEnum.NodeDeformed], dataContainer.IndicesLoadNode);
+                    _scenes[TypeToRender.LoadNode].Initialize(dataContainer.IndicesLoadNode, _vboList[VBOEnum.Node], _vboList[VBOEnum.NodeDeformed]);
                 }
                 if (_vboList.ContainsKey(VBOEnum.LoadLine) && dataContainer.IndicesLoadLine.Length > 0)
                 {
-                    _scenes[TypeToRender.LoadLine].Initialize(_vboList[VBOEnum.LoadLine], _vboList[VBOEnum.LoadLine], dataContainer.IndicesLoadLine);
+                    _scenes[TypeToRender.LoadLine].Initialize(dataContainer.IndicesLoadLine, _vboList[VBOEnum.Node], _vboList[VBOEnum.Node]);
                 }
                 if (_vboList.ContainsKey(VBOEnum.Element) && dataContainer.IndicesLoadSurface.Length > 0)
                 {
-                    _scenes[TypeToRender.LoadSurface].Initialize(_vboList[VBOEnum.Element], _vboList[VBOEnum.ElementDeformed], dataContainer.IndicesLoadSurface);
+                    _scenes[TypeToRender.LoadSurface].Initialize(dataContainer.IndicesLoadSurface, _vboList[VBOEnum.Element], _vboList[VBOEnum.ElementDeformed]);
                 }
             }
         }

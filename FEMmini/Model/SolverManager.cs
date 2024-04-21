@@ -86,9 +86,9 @@ namespace FEMmini
             {
                 Name = problemData.Name;
             }
-            Geometry.Initialize(problemData.Elements, problemData.Nodes, problemData.MeshSetPhase);
+            Geometry.Initialize(problemData.Elements, problemData.Nodes, problemData.MeshSets);
             Fem.Initialize(problemData.LoadsNode, problemData.LoadsLine, problemData.LoadsSurface, 
-                           problemData.Constraints, problemData.Properties, problemData.SolutionProperties);
+                           problemData.Constraints, problemData.Properties, problemData.PhaseCharacteristics);
             //Renderer.Borders = Geometry.Borders;
         }
         public void SetSolutionToRender(SolutionID id)
