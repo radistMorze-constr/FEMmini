@@ -173,7 +173,12 @@ namespace FEMmini
         public bool ModeLoad
         {
             get => _renderer.Mode.LoadLine;
-            set => _renderer.Mode.LoadLine = value;
+            set
+            {
+                _renderer.Mode.LoadNode = value;
+                _renderer.Mode.LoadLine = value;
+                _renderer.Mode.LoadSurface = value;
+            }
         }
         public SolutionID SolutionID
         {

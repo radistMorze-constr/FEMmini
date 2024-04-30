@@ -9,6 +9,7 @@ using System.Diagnostics;
 using Prism.Mvvm;
 using FEMmini;
 using static ScottPlot.Plottable.PopulationPlot;
+using System.Windows.Markup;
 
 namespace Engine
 {
@@ -22,8 +23,6 @@ namespace Engine
             { ShaderSources.vertConstraint, "View/Engine/Shaders/shaderConstraint.vert"},
             { ShaderSources.fragConstraint, "View/Engine/Shaders/shaderConstraint.frag"},
             { ShaderSources.geomConstraint, "View/Engine/Shaders/shaderConstraint.glsl"},
-            { ShaderSources.vertLoadLine, "View/Engine/Shaders/shaderForces.vert"},
-            { ShaderSources.fragLoadLine, "View/Engine/Shaders/shaderForces.frag"},
             { ShaderSources.geomLoadLine, "View/Engine/Shaders/shaderForcesLine.glsl"},
             { ShaderSources.vertLoad, "View/Engine/Shaders/shaderForces.vert"},
             { ShaderSources.fragLoad, "View/Engine/Shaders/shaderForces.frag"},
@@ -119,8 +118,8 @@ namespace Engine
                 _shaderSources[ShaderSources.fragLoad],
                 _shaderSources[ShaderSources.geomLoad]);
             _scenes[TypeToRender.LoadLine] = new SceneLoadLine(_camera,
-                _shaderSources[ShaderSources.vertLoadLine],
-                _shaderSources[ShaderSources.fragLoadLine],
+                _shaderSources[ShaderSources.vertLoad],
+                _shaderSources[ShaderSources.fragLoad],
                 _shaderSources[ShaderSources.geomLoadLine]);
             _scenes[TypeToRender.LoadSurface] = new SceneLoadSurface(_camera,
                 _shaderSources[ShaderSources.vertLoad],
@@ -145,9 +144,9 @@ namespace Engine
 
             GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
             if (Mode.Constraint) _scenes[TypeToRender.Constraint].Render(Mode.IsDeformed);
-            if (Mode.LoadNode) _scenes[TypeToRender.LoadNode].Render(Mode.IsDeformed);
+            if (Mode.LoadNode) _scenes[TypeToRender.LoadNode].Render();
             if (Mode.LoadLine) _scenes[TypeToRender.LoadLine].Render();
-            if (Mode.LoadSurface) _scenes[TypeToRender.LoadSurface].Render(Mode.IsDeformed);
+            if (Mode.LoadSurface) _scenes[TypeToRender.LoadSurface].Render();
             if (Mode.Text) _scenes[TypeToRender.Text].Render(Mode.IsDeformed);
 
             //рендер текста будет в ренедере SceneText
@@ -160,8 +159,27 @@ namespace Engine
             _borders = FindLimits(dataContainer.VertNodes, dataContainer.IndicesNodes);
             _bordersDeformed = FindLimits(dataContainer.VertNodesDeformed, dataContainer.IndicesNodes);
 
-            //Заполненение контейнера объектов с координатами вершин VBO
             {
+                /*
+                if (dataContainer.LoadNodeSSBO.Length > 0)
+                {
+                    var vbo = new BufferObject(BufferType.ShaderStorageBuffer);
+                    vbo.SetData(dataContainer.LoadNodeSSBO, BufferUsageHint.StaticDraw);
+                    _vboList[VBOEnum.LoadNodeSSBO] = vbo;
+                }
+                if (dataContainer.LoadSurfaceSSBO.Length > 0)
+                {
+                    var vbo = new BufferObject(BufferType.ShaderStorageBuffer);
+                    vbo.SetData(dataContainer.LoadSurfaceSSBO, BufferUsageHint.StaticDraw);
+                    _vboList[VBOEnum.LoadSurfaceSSBO] = vbo;
+                }
+                if (dataContainer.LoadLineSSBO.Length > 0)
+                {
+                    var vbo = new BufferObject(BufferType.ShaderStorageBuffer);
+                    vbo.SetData(dataContainer.LoadLineSSBO, BufferUsageHint.StaticDraw);
+                    _vboList[VBOEnum.LoadLineSSBO] = vbo;
+                }
+                */
                 if (dataContainer.VertNodes.Length > 0)
                 {
                     var vbo = new BufferObject(BufferType.ArrayBuffer);
@@ -216,15 +234,21 @@ namespace Engine
                 }
                 if (_vboList.ContainsKey(VBOEnum.Node) && dataContainer.IndicesLoadNode.Length > 0)
                 {
-                    _scenes[TypeToRender.LoadNode].Initialize(dataContainer.IndicesLoadNode, _vboList[VBOEnum.Node], _vboList[VBOEnum.NodeDeformed]);
+                    _scenes[TypeToRender.LoadNode].Initialize(dataContainer.IndicesLoadNode, _vboList[VBOEnum.Node]);
+                    var scene = (SceneLoad)_scenes[TypeToRender.LoadNode];
+                    scene.SetSSBOload(dataContainer.LoadNodeSSBO);
                 }
                 if (_vboList.ContainsKey(VBOEnum.LoadLine) && dataContainer.IndicesLoadLine.Length > 0)
                 {
-                    _scenes[TypeToRender.LoadLine].Initialize(dataContainer.IndicesLoadLine, _vboList[VBOEnum.Node], _vboList[VBOEnum.Node]);
+                    _scenes[TypeToRender.LoadLine].Initialize(dataContainer.IndicesLoadLine, _vboList[VBOEnum.Node]);
+                    var scene = (SceneLoad)_scenes[TypeToRender.LoadLine];
+                    scene.SetSSBOload(dataContainer.LoadLineSSBO);
                 }
                 if (_vboList.ContainsKey(VBOEnum.Element) && dataContainer.IndicesLoadSurface.Length > 0)
                 {
-                    _scenes[TypeToRender.LoadSurface].Initialize(dataContainer.IndicesLoadSurface, _vboList[VBOEnum.Element], _vboList[VBOEnum.ElementDeformed]);
+                    _scenes[TypeToRender.LoadSurface].Initialize(dataContainer.IndicesLoadSurface, _vboList[VBOEnum.Element]);
+                    var scene = (SceneLoad)_scenes[TypeToRender.LoadSurface];
+                    scene.SetSSBOload(dataContainer.LoadSurfaceSSBO);
                 }
             }
         }
@@ -286,7 +310,7 @@ namespace Engine
             //надо проверят камеру на null и назначать новые размеры
             _camera.SetAspectRatio(_widgetWidth, _widgetHeight);
         }
-
+            
         public void MouseMove(System.Windows.Point position)
         {
             var xFactor = (float)position.X / _widgetWidth;

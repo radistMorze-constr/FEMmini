@@ -8,6 +8,7 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using Common;
 using System.Xml.Xsl;
+using FEMmini;
 
 namespace Engine
 {
@@ -21,8 +22,6 @@ namespace Engine
         vertLoad,
         fragLoad,
         geomLoad,
-        vertLoadLine,
-        fragLoadLine,
         geomLoadLine,
         vertText,
         fragText
@@ -46,6 +45,7 @@ namespace Engine
         protected virtual void SetSettings() 
         {
             GL.PointSize(0);
+            GL.LineWidth(1);
         }
         public abstract void Render(bool isDeformed = false); 
         public virtual void Draw()
@@ -146,10 +146,6 @@ namespace Engine
             _vaoDeformed.AttribPointer(VBOEnum.ConstraintType, constraintType, 1, AttribType.Float, 1 * sizeof(float), 0);
             _vaoDeformed.Deactivate();
         }
-        protected override void SetSettings()
-        {
-            GL.PointSize(10);
-        }
     }
     public abstract class SceneLoad : Scene
     {
@@ -160,22 +156,37 @@ namespace Engine
             _shader = new Shader(shaderVert, shaderFrag, shaderGeom);
             _shader.Use();
         }
+        protected override void SetSettings()
+        {
+            GL.LineWidth(3);
+        }
         public override void Initialize(uint[] indices, params BufferObject[] vbos)
         {
             var vbo = vbos[0];
-            //var vboAngle = vbos[1];
-            //var vboLengthArrow = vbos[2];
+            //var ssbo = vbos[1];
 
             _shader.Use();
             var vertexLocation = _shader.GetAttribLocation("aPosition");
+
             _vao.Initialize(vbo, indices);
+
             _vao.AttribPointer(VBOEnum.Node, vertexLocation, 3, AttribType.Float, 3 * sizeof(float), 0);
+
             _vao.Deactivate();
         }
         public override void Render(bool isDeformed = false)
         {
             _vao.Activate();
             Draw();
+        }
+        public void SetSSBOload(LoadSSBO[] data)
+        {
+            _vao.Activate();
+            _shader.BindSSBO("ssbo1");
+            var index = _shader.GetSSBOindex("ssbo1");
+            var ssbo = new SSBObject(BufferType.ShaderStorageBuffer, index);
+            ssbo.SetData(data, BufferUsageHint.StaticDraw);
+            _vao.AttachBuffer(VBOEnum.LoadLineSSBO, ssbo);
         }
     }
     public class SceneLoadNode : SceneLoad

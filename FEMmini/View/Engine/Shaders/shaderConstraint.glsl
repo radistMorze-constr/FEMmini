@@ -8,23 +8,23 @@ in VS_OUT {
 
 void DrawArrow(vec4 position, float indicator)
 {    
-    if (indicator != 1) 
-    {
-        gl_Position = position;
-        EmitVertex();
-        gl_Position = position + vec4(-0.03, -0.05, -0.01, 0.0);
-        EmitVertex();
-        gl_Position = position + vec4(0.03, -0.05, -0.01, 0.0);
-        EmitVertex();
-        EndPrimitive();
-    }
     if (indicator != 0) 
     {
         gl_Position = position;
         EmitVertex();
-        gl_Position = position + vec4(-0.05, 0.03, -0.01, 0.0);
+        gl_Position = position + vec4(-0.03, -0.05, 0.0, 0.0);
         EmitVertex();
-        gl_Position = position + vec4(-0.05, -0.03, -0.01, 0.0);
+        gl_Position = position + vec4(0.03, -0.05, 0.0, 0.0);
+        EmitVertex();
+        EndPrimitive();
+    }
+    if (indicator != 1) 
+    {
+        gl_Position = position;
+        EmitVertex();
+        gl_Position = position + vec4(-0.05, 0.03, 0.0, 0.0);
+        EmitVertex();
+        gl_Position = position + vec4(-0.05, -0.03, 0.0, 0.0);
         EmitVertex();
         EndPrimitive();
     }

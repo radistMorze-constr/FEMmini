@@ -32,19 +32,19 @@ namespace FEMmini
 
     public class NodeLoad : Load
     {
-        public List<int> _nodes;
+        public List<int> Nodes { get; private set; }
         public NodeLoad(int id, List<int> nodes, double forceX, double forceY) :
             base(id, forceX, forceY)
         {
-            _nodes = nodes;
+            Nodes = nodes;
         }
 
         public override void Apply(DrawGeometry geometry, Dictionary<int, double> elementDeterminantC, Vector<double> globalRight)
         {
-            foreach (var node in _nodes)
+            foreach (var node in Nodes)
             {
-                globalRight[2 * node] += ForceX;
-                globalRight[2 * node + 1] += ForceY;
+                globalRight[2 * (node - 1)] += ForceX;
+                globalRight[2 * (node - 1) + 1] += ForceY;
             }
         }
     }
@@ -91,8 +91,8 @@ namespace FEMmini
                 var detC = elementDeterminantC[index];
                 foreach (var node in nodes)
                 {
-                    globalRight[2 * node] += detC / 6 * ForceX;
-                    globalRight[2 * node + 1] += detC / 6 * ForceY;
+                    globalRight[2 * (node - 1)] += detC / 6 * ForceX;
+                    globalRight[2 * (node - 1) + 1] += detC / 6 * ForceY;
                 }
             }
         }

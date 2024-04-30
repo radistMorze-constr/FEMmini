@@ -7,6 +7,16 @@ using System.Threading.Tasks;
 
 namespace Common
 {
+    public struct LoadSSBO
+    {
+        public float LoadValue { get; set; }
+        public float LoadAngle { get; set; }
+        public LoadSSBO(float loadValue, float loadAngle)
+        {
+            LoadValue = loadValue;
+            LoadAngle = loadAngle;
+        }
+    }
     public enum VBOEnum
     {
         Node,
@@ -15,8 +25,9 @@ namespace Common
         ElementDeformed,
         LoadLine,
         ConstraintType,
-        LoadValue,
-        LaodAngel
+        LoadNodeSSBO,
+        LoadSurfaceSSBO,
+        LoadLineSSBO
     }
     public struct VisibleRectangle 
     {
@@ -108,8 +119,9 @@ namespace Common
             IndicesLoadSurface = new uint[indicesLoadSurface];
             VertLoadLineCenter = new float[3 * lineLoadCount];
             IndicesLoadLine = new uint[lineLoadCount];
-            LoadValue = new float[lineLoadCount];
-            LoadAngle = new float[lineLoadCount];
+            LoadLineSSBO = new LoadSSBO[lineLoadCount];
+            LoadNodeSSBO = new LoadSSBO[indicesLoadNode];
+            LoadSurfaceSSBO = new LoadSSBO[indicesLoadSurface];
         }
         /// <summary>
         /// Координаты всех узлов в схеме
@@ -164,12 +176,16 @@ namespace Common
         /// </summary>
         public uint[] IndicesLoadLine { get; set; }
         /// <summary>
-        /// Коэффициенты нагрузки от максимума (модуль длины для рендера)
+        /// Данные для SSBO линейных нагрузок: магнитуда, угол наклона
         /// </summary>
-        public float[] LoadValue { get; set; }
+        public LoadSSBO[] LoadLineSSBO { get; set; }
         /// <summary>
-        /// Углы наклона нагрузок
+        /// Данные для SSBO узловых нагрузок: магнитуда, угол наклона
         /// </summary>
-        public float[] LoadAngle { get; set; }
+        public LoadSSBO[] LoadNodeSSBO { get; set; }
+        /// <summary>
+        /// Данные для SSBO площадных нагрузок: магнитуда, угол наклона
+        /// </summary>
+        public LoadSSBO[] LoadSurfaceSSBO { get; set; }
     }
 }

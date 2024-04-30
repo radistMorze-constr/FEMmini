@@ -123,7 +123,11 @@ namespace FEMmini
                 {
                     _solutionID = new SolutionID(solutionProperty.IndexPhase, i);
                     Solutions[_solutionID] = new Solution(_solutionID);
-                    _solver.SolveEquations(IteratorLoad(solutionProperty.LoadLineIDs),
+                    var loadsList = new List<int>();
+                    loadsList.AddRange(solutionProperty.LoadNodeIDs);
+                    loadsList.AddRange(solutionProperty.LoadLineIDs);
+                    loadsList.AddRange(solutionProperty.LoadSurfaceIDs);
+                    _solver.SolveEquations(IteratorLoad(loadsList),
                             IteratorConstraint(solutionProperty.ConstraintIDs),
                             Solutions[_solutionID]);
                 }

@@ -9,6 +9,9 @@ using ScottPlot.Drawing.Colormaps;
 using Engine;
 using System.Data;
 using System.Threading.Tasks.Sources;
+using System.Windows.Documents;
+using System.Diagnostics;
+using System.ComponentModel.DataAnnotations;
 
 namespace FEMmini
 {
@@ -37,16 +40,31 @@ namespace FEMmini
             var nodesId = phaseCharacteristics.NodeIDs;
             var elementsId = phaseCharacteristics.ElementIDs;
             var loadNode = _solver.LoadsNoad;
+            var loadNodeCount = 0;
+            foreach (var x in loadNode.Values)
+            {
+                loadNodeCount += x.Nodes.Count;
+            }
             var loadLine = _solver.LoadsLine;
+            var loadLineCount = 0;
+            foreach(var x in loadLine.Values)
+            {
+                loadLineCount += x.Nodes.Count;
+            }
             var loadSurface = _solver.LoadsSurface;
+            var loadSurfaceCount = 0;
+            foreach (var x in loadSurface.Values)
+            {
+                loadSurfaceCount += x.Elements.Count;
+            }
             var result = new DataContainerToRender(_geometry.Nodes.Count,
                 nodesId.Count,
                 elementsId.Count,
                 phaseCharacteristics.ConstraintIDs.Count,
-                loadNode.Count,
+                loadNodeCount,
                 _geometry.Elements.Count,
-                loadSurface.Count,
-                loadLine.Count);
+                loadSurfaceCount,
+                loadLineCount);
             //VertNodes
             foreach (var node in _geometry.Nodes.Values)
             {
@@ -77,27 +95,29 @@ namespace FEMmini
             //IndicesConstraints
             var indicesConstraints = new List<int>();
             var constraintsTypes = new List<float>();
+            constraintsTypes.AddRange(Enumerable.Repeat(0f, result.IndicesNodes.Count()));
             foreach (var constraintId in phaseCharacteristics.ConstraintIDs)
             {
                 var constraint = _solver.GetConstraint(constraintId);
                 indicesConstraints.AddRange(constraint.Nodes);
-                constraintsTypes.AddRange(Enumerable.Repeat((float)constraint.Type, 5 * constraint.Nodes.Count));
+                foreach (var node in constraint.Nodes)
+                {
+                    constraintsTypes[node - 1] = (float)constraint.Type;
+                }
             }
             result.IndicesConstraints = indicesConstraints.Select(x => (uint)(x - 1)).ToArray();
             //ConstraintsTypes
             result.ConstraintsTypes = constraintsTypes.ToArray();
-            //IndicesLoadNode
-            result.IndicesLoadNode = phaseCharacteristics.LoadNodeIDs.Select(x => (uint)x).ToArray();
             //VertElementCenter
             foreach (var elem in _geometry.Elements.Values)
             {
-                var node1 = elem.Nodes[0];
-                var node2 = elem.Nodes[1];
-                var node3 = elem.Nodes[2];
-                var x = (result.VertNodes[node1] + result.VertNodes[node2] + result.VertNodes[node3]) / 3;
-                var y = (result.VertNodes[node1 + 1] + result.VertNodes[node2 + 1] + result.VertNodes[node3] + 1) / 3;
-                result.VertElementCenter[elem.Id] = x;
-                result.VertElementCenter[elem.Id + 1] = y;
+                var node1 = elem.Nodes[0] - 1;
+                var node2 = elem.Nodes[1] - 1;
+                var node3 = elem.Nodes[2] - 1;
+                var x = (result.VertNodes[3 * node1] + result.VertNodes[3 * node2] + result.VertNodes[3 * node3]) / 3;
+                var y = (result.VertNodes[3 * node1 + 1] + result.VertNodes[3 * node2 + 1] + result.VertNodes[3 * node3 + 1]) / 3;
+                result.VertElementCenter[3 * (elem.Id - 1)] = x;
+                result.VertElementCenter[3 * (elem.Id - 1) + 1] = y;
             }
             //VertElementCenterDeformed
             result.VertElementCenter.CopyTo(result.VertElementCenterDeformed, 0);
@@ -113,9 +133,7 @@ namespace FEMmini
                 result.VertElementCenterDeformed[elemId + 1] = y;
             }
             //IndicesElementCenter
-            result.IndicesElementCenter = elementsId.Select(x => (uint)x).ToArray();
-            //IndicesLoadSurface
-            result.IndicesLoadSurface = phaseCharacteristics.LoadSurfaceIDs.Select(x => (uint)x).ToArray();
+            result.IndicesElementCenter = elementsId.Select(x => (uint)(x - 1)).ToArray();
             //VertLoadLineCenter
             foreach (var load in loadLine.Values)
             {
@@ -130,21 +148,71 @@ namespace FEMmini
                     result.VertLoadLineCenter[load.Id + 1] = y;
                 }
             }
-            //IndicesLoadLine
-            var indicesLoadLine = new List<int>();
+            //Контейнеры рабочие для работы с данными по нагрузкам
             var loadValues = new List<float>();
             var loadAngles = new List<float>();
             var loadMax = float.MinValue;
+            //IndicesLoadNode
+            var indicesLoadNode = new List<int>();
+            foreach (var loadID in phaseCharacteristics.LoadNodeIDs)
+            {
+                var load = loadNode[loadID];
+                indicesLoadNode.AddRange(load.Nodes);
+                var loadXY = Math.Sqrt(load.ForceX * load.ForceX + load.ForceY * load.ForceY);
+                if (loadMax < loadXY)
+                {
+                    loadMax = (float)loadXY;
+                }
+                loadValues.AddRange(Enumerable.Repeat((float)loadXY, load.Nodes.Count));
+                var angle = Math.Asin(load.ForceY / loadXY);
+                loadAngles.AddRange(Enumerable.Repeat((float)angle, load.Nodes.Count));
+            }
+            result.IndicesLoadNode = indicesLoadNode.Select(x => (uint)(x - 1)).ToArray();
+            //LoadNodeSSBO
+            for (int index = 0; index < loadValues.Count; ++index)
+            {
+                result.LoadNodeSSBO[index] = new LoadSSBO(loadValues[index] / loadMax, loadAngles[index]);
+            }
+            //IndicesLoadSurface
+            var indicesLoadSurface = new List<int>();
+            loadMax = float.MinValue;
+            loadValues.Clear();
+            loadAngles.Clear();
+            foreach (var loadID in phaseCharacteristics.LoadSurfaceIDs)
+            {
+                var load = loadSurface[loadID];
+                indicesLoadSurface.AddRange(load.Elements);
+                var loadXY = Math.Sqrt(load.ForceX * load.ForceX + load.ForceY * load.ForceY);
+                if (loadMax < loadXY)
+                {
+                    loadMax = (float)loadXY;
+                }
+                loadValues.AddRange(Enumerable.Repeat((float)loadXY, load.Elements.Count));
+                var angle = Math.Asin(load.ForceY / loadXY);
+                loadAngles.AddRange(Enumerable.Repeat((float)angle, load.Elements.Count));
+            }
+            result.IndicesLoadSurface = indicesLoadSurface.Select(x => (uint)(x - 1)).ToArray();
+            //LoadNodeSSBO
+            for (int index = 0; index < loadValues.Count; ++index)
+            {
+                result.LoadSurfaceSSBO[index] = new LoadSSBO(loadValues[index] / loadMax, loadAngles[index]);
+            }
+            //IndicesLoadLine
+            var indicesLoadLine = new List<int>();
+            loadMax = float.MinValue;
+            loadValues.Clear();
+            loadAngles.Clear();
             foreach (var loadID in phaseCharacteristics.LoadLineIDs)
             {
                 var load = loadLine[loadID];
                 var loadXY = Math.Sqrt(load.ForceX * load.ForceX + load.ForceY * load.ForceY);
-                if (loadMax < Math.Abs(loadXY))
+                if (loadMax < loadXY)
                 {
-                    loadMax = (float)Math.Abs(loadXY);
+                    loadMax = (float)loadXY;
                 }
-                var loadAngle = load.ForceX / load.ForceY;
-                //loadValues.AddRange()
+                loadValues.AddRange(Enumerable.Repeat((float)loadXY, load.Nodes.Count));
+                var angle = Math.Asin(load.ForceY / loadXY);
+                loadAngles.AddRange(Enumerable.Repeat((float)angle, load.Nodes.Count));
                 foreach (var loadTuple in load.Nodes)
                 {
                     indicesLoadLine.Add(loadTuple.Item1);
@@ -152,9 +220,11 @@ namespace FEMmini
                 }
             }
             result.IndicesLoadLine = indicesLoadLine.Select(x => (uint)(x - 1)).ToArray();
-            //LoadValue
-            
-
+            //LoadLineSSBO
+            for (int index = 0; index < loadValues.Count; ++index)
+            {
+                result.LoadLineSSBO[index] = new LoadSSBO(loadValues[index] / loadMax, loadAngles[index]);
+            }
 
             return result;
         }

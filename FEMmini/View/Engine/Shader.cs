@@ -11,8 +11,10 @@ namespace Engine
     public class Shader
     {
         public readonly int Handle;
+        public static int SSBOcounter;
 
         private readonly Dictionary<string, int> _uniformLocations;
+        private readonly Dictionary<string, int> _SSBOindex;
 
         // This is how you create a simple shader.
         // Shaders are written in GLSL, which is a language very similar to C in its semantics.
@@ -86,9 +88,10 @@ namespace Engine
 
             // First, we have to get the number of active uniforms in the shader.
             GL.GetProgram(Handle, GetProgramParameterName.ActiveUniforms, out var numberOfUniforms);
-
+             
             // Next, allocate the dictionary to hold the locations.
             _uniformLocations = new Dictionary<string, int>();
+            _SSBOindex = new Dictionary<string, int>();
 
             // Loop over all the uniforms,
             for (var i = 0; i < numberOfUniforms; i++)
@@ -137,6 +140,23 @@ namespace Engine
         public void Use()
         {
             GL.UseProgram(Handle);
+        }
+        /// <summary>
+        /// Задает index буфера SSBO, по которому будет заполнятсья буфер
+        /// </summary>
+        /// <param name="attribName">Имя контейнера SSBO в шейдере</param>
+        public int BindSSBO(string attribName)
+        {
+            var index = GL.GetProgramResourceIndex(Handle, ProgramInterface.ShaderStorageBlock, attribName);
+            GL.ShaderStorageBlockBinding(Handle, index, SSBOcounter);
+            _SSBOindex[attribName] = SSBOcounter;
+            ++SSBOcounter;
+            return GL.GetAttribLocation(Handle, attribName);
+        }
+
+        public int GetSSBOindex(string attribName)
+        {
+            return _SSBOindex[attribName];
         }
 
         // The shader sources provided with this project use hardcoded layout(location)-s. If you want to do it dynamically,
