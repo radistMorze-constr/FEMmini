@@ -265,10 +265,12 @@ namespace FEMmini
             var id_meshsetsAdded = ReadId(reader);
             var id_meshsetsDeleted = ReadId(reader);
             var id_meshsets = new List<int>(id_meshsetsAdded);
+            /*
             if (id > 0)
             {
                 id_meshsets = id_meshsets.Union(problemData.PhaseCharacteristics[id - 1].MeshsetIDs).Except(id_meshsetsDeleted).ToList();
             }
+            */
             id_meshsets = id_meshsets.Union(id_meshsetsAdded).Except(id_meshsetsDeleted).ToList();
             var id_constraints = ReadId(reader);
             var id_loadsNode = ReadId(reader);

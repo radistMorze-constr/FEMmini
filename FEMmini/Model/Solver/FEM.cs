@@ -19,11 +19,11 @@ namespace FEMmini
         private int _idModels = 0;
         private readonly DrawGeometry _geometry;
         private EquationSolver _solver;
-        private Dictionary<int, MaterialModel> _properties = new Dictionary<int, MaterialModel>();
+        public Dictionary<int, MaterialModel> Properties = new Dictionary<int, MaterialModel>();
         public Dictionary<int, NodeLoad> LoadsNoad { get; private set; } = new Dictionary<int, NodeLoad>();
         public Dictionary<int, LineLoad> LoadsLine { get; private set; } = new Dictionary<int, LineLoad>();
         public Dictionary<int, SurfaceLoad> LoadsSurface { get; private set; } = new Dictionary<int, SurfaceLoad>();
-        private Dictionary<int, Constraints> _constraints = new Dictionary<int, Constraints>();
+        public Dictionary<int, Constraints> Constraints = new Dictionary<int, Constraints>();
         private Dictionary<int, PhaseCharacteristics> _phaseCharacteristics = new Dictionary<int, PhaseCharacteristics>();
         public Dictionary<SolutionID, Solution> Solutions { get; private set; } = new Dictionary<SolutionID, Solution>();
         private SolutionID _solutionID;
@@ -46,10 +46,10 @@ namespace FEMmini
             LoadsNoad = loadsNode;
             LoadsLine = loadsLine;
             LoadsSurface =  loadsSurface;
-            _constraints = constraints;
-            _properties = properties;
+            Constraints = constraints;
+            Properties = properties;
             _phaseCharacteristics = phaseCharacteristics;
-            _solver = new SolverPlaneLinear(ProblemType, _geometry, _phaseCharacteristics, _properties);
+            _solver = new SolverPlaneLinear(ProblemType, _geometry, _phaseCharacteristics, Properties);
         }
             
         public Solution GetSolution(SolutionID id) 
@@ -66,18 +66,18 @@ namespace FEMmini
         }
         public Constraints GetConstraint(int constraintId)
         {
-            return _constraints[constraintId];
+            return Constraints[constraintId];
         }
         public void AddMaterial(int index, Typematerial typeModel, double E, double nu, double rhof, double c, double phi)
         {
             ++_idModels;
             if (typeModel == Typematerial.Elastic)
             {
-                _properties[_idModels] = new Elastic(index, E, nu, rhof, ProblemType);
+                Properties[_idModels] = new Elastic(index, E, nu, rhof, ProblemType);
             }
             else
             {
-                _properties[_idModels] = new IdealPlasticity(index, E, nu, rhof, ProblemType, c, phi);
+                Properties[_idModels] = new IdealPlasticity(index, E, nu, rhof, ProblemType, c, phi);
             }
         }
 
@@ -85,7 +85,7 @@ namespace FEMmini
         {
             foreach (var index in constraints)
             {
-                yield return _constraints[index];
+                yield return Constraints[index];
             }
             yield break;
         }

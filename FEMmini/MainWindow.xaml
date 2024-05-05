@@ -26,7 +26,7 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Button x:Name="OpenSolution" Grid.Column="0" Content="" Width="30">
+                <Button x:Name="OpenSolution" Command="{Binding UpdateDataCommand}" Grid.Column="0" Content="" Width="30">
                     <Button.Background>
                         <ImageBrush ImageSource="D:\PetProjects\3D_graphics\Images\Custom-Icon-Design-Mono-General-2-Folder.png" />
                     </Button.Background>

@@ -5,6 +5,8 @@ uniform vec4 uColor;
 
 in vec2 vTexCoord;
 
+out vec4 outputColor;
+
 uniform sampler2D texture0;
 
 void main()
@@ -21,7 +23,8 @@ void main()
     vec4 color = texture(texture0, vTexCoord);
     if (color.a > 0) {
         //gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-        gl_FragColor = color;
+        //gl_FragColor = color;
+        outputColor = color;
     }
     else {
         discard;

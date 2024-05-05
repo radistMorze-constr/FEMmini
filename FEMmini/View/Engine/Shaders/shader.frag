@@ -3,6 +3,7 @@
 out vec4 outputColor;
 
 in float color_factor;
+uniform vec4 aColor;
 
 void main()
 {
@@ -16,5 +17,6 @@ void main()
         blue_factor = 0.5;
     }
     //outputColor = vec4(0.0, 1.0 - 2*green_factor, 0.0 + 2*blue_factor, 1.0);
-    outputColor = vec4(0.0, 1.0, 0.0, 1.0);
+    //outputColor = vec4(0.0, 1.0, 0.0, 1.0);
+    outputColor = aColor;
 }

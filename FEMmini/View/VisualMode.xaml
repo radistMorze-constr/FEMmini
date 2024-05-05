@@ -10,10 +10,11 @@
     <StackPanel>
         <StackPanel.Resources>
             <local:EnumsIEnumerableConverter x:Key="EnumsIEnumerableConverter"/>
+            <local:BoolToBoolConverter x:Key="BoolToBoolConverter" FalseValue="True" TrueValue="False" />
         </StackPanel.Resources>
-        <CheckBox x:Name="TypeVisual" IsChecked="{Binding VisualMode.ModeIsDeformed}" Content="Деформированная"/>
-        <TextBlock Margin="0 10 0 0">Решение для отображения результатов:</TextBlock>
-        <Grid x:Name="SolutionlIDPanel">
+        <CheckBox x:Name="TypeVisual" IsEnabled="{Binding AnalysisMode.IsCalculated}" IsChecked="{Binding VisualMode.ModeIsDeformed}" Content="Деформированная"/>
+        <!--<TextBlock Margin="0 10 0 0">Решение для отображения результатов:</TextBlock>-->
+        <!--<Grid x:Name="SolutionlIDPanel">
             <Grid.Resources >
                 <Style TargetType="Border" >
                     <Setter Property="Padding" Value="5,5,5,5" />
@@ -31,18 +32,17 @@
             <TextBlock Grid.Column="1" Grid.Row="0">№Шага нагрузки</TextBlock>
             <ComboBox x:Name="IterationComboBox" Grid.Column="0" Grid.Row="1"/>
             <ComboBox x:Name="StepComboBox" Grid.Column="1" Grid.Row="1"/>
-        </Grid>
+        </Grid>-->
         <TextBlock Margin="0 10 0 0">Коэффициент искажения деформированной схемы:</TextBlock>
         <ComboBox Margin="10 10 0 0" Width="50" HorizontalAlignment="Left" x:Name="MultipleDeform" Grid.Column="0" Grid.Row="1" ItemsSource="{Binding VisualMode.DeformationMultiple}" SelectedValue="{Binding VisualMode.DeformationMultipleChoice}"/>
         <TextBlock Margin="0 10 0 0">Отображение данных:</TextBlock>
         <CheckBox x:Name="checkNodes" IsChecked="{Binding VisualMode.ModeNode}" Content="Узлы"/>
         <CheckBox x:Name="checkElements" IsChecked="{Binding VisualMode.ModeElement}" Content="Элементы"/>
+        <CheckBox x:Name="checkDirihle" IsChecked="{Binding VisualMode.ModeConstraint}" Content="Закрепления"/>
         <CheckBox x:Name="checkIdNodes" IsChecked="{Binding VisualMode.Mode.IdNodes}" Content="Номера узлов"/>
         <CheckBox x:Name="checkIdElements" IsChecked="{Binding VisualMode.Mode.IdElements}" Content="Номера элементов"/>
-        <CheckBox x:Name="checkDirihle" IsChecked="{Binding VisualMode.ModeConstraint}" Content="Закрепления"/>
-        <CheckBox x:Name="checkProperties" IsChecked="{Binding VisualMode.Mode.Stiffness}" Content="Тип жесткости"/>
-        <TextBlock Margin="0 10 0 0">Внешние нагрузки:</TextBlock>
-        <CheckBox x:Name="checkNeyman" IsChecked="{Binding VisualMode.ModeLoad}" Content="Нагрузки на ребра"/>
+        <!--<CheckBox x:Name="checkProperties" IsChecked="{Binding VisualMode.Mode.Stiffness}" Content="Тип жесткости"/>-->
+        <CheckBox x:Name="checkNeyman" IsEnabled="{Binding Path=VisualMode.ModeIsDeformed, Converter={StaticResource BoolToBoolConverter}}" IsChecked="{Binding VisualMode.ModeLoad}" Content="Нагрузки"/>
         <TextBlock Margin="0 10 0 0">Результаты в узлах:</TextBlock>
         <RadioButton GroupName="TypeResult" IsChecked="{Binding Path=VisualMode.NodeResult, Converter={StaticResource EnumsIEnumerableConverter}, ConverterParameter={x:Static common:VisualNodeText.DeflectionX}}">Перемещения X</RadioButton>
         <RadioButton GroupName="TypeResult" IsChecked="{Binding Path=VisualMode.NodeResult, Converter={StaticResource EnumsIEnumerableConverter}, ConverterParameter={x:Static common:VisualNodeText.DeflectionY}}">Перемещения Y</RadioButton>

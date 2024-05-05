@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Common;
 using Engine;
 using Microsoft.VisualBasic.ApplicationServices;
+using Prism.Mvvm;
 
 namespace FEMmini
 {
-    public class SolverManager
+    public class SolverManager : BindableBase
     {
         private SolutionID _solutionIDtoRender;
         private VisualNodeText _nodeResult = VisualNodeText.Nothing;
@@ -23,6 +25,16 @@ namespace FEMmini
             {
                 _multipleDeform = value;
                 SetSolutionToRender(_solutionIDtoRender);
+            }
+        }
+        private string _name = "Новая задача";
+        public string Name 
+        {
+            get => _name;
+            set
+            {
+                _name = value;
+                RaisePropertyChanged("Name");
             }
         }
         public SolutionID SolutionID 
@@ -70,7 +82,6 @@ namespace FEMmini
             Fem = new FEM(Geometry);
             _geometryConverter = new GeometryDataConverter(Fem, Geometry);
         }
-        public string Name { get; set; } = "Новая задача";
         public DrawGeometry Geometry { get; } = new DrawGeometry();
         public Renderer Renderer { get; set; } = new Renderer();
         /// <summary>
@@ -91,14 +102,15 @@ namespace FEMmini
                            problemData.Constraints, problemData.Properties, problemData.PhaseCharacteristics);
             //Renderer.Borders = Geometry.Borders;
         }
-        public void SetSolutionToRender(SolutionID id)
+        public void SetSolutionToRender(SolutionID id,bool isCalculated = true)
         {
             //выполнить конвертацию данных в списке и передать в рендер
             if (id.IndexPhase != _solutionIDtoRender.IndexPhase && id.StepLoad != _solutionIDtoRender.StepLoad)
             {
-                Renderer.InitializeGeometry(_geometryConverter.ConvertSolutionData(id, MultipleDeform));
+                Renderer.InitializeGeometry(_geometryConverter.ConvertSolutionData(id, MultipleDeform, isCalculated));
             }
-            Renderer.InitializeGeometry(_geometryConverter.ConvertSolutionData(id, MultipleDeform));
+            Renderer.InitializeGeometry(_geometryConverter.ConvertSolutionData(id, MultipleDeform, isCalculated));
+            Renderer.MouseWheelPressed();
         }
         public void SetTextToRender<T>(T enumText) where T : Enum
         {

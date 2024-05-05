@@ -31,11 +31,10 @@ namespace FEMmini
             _solver = fem;
             _geometry = geometry;
         }
-        public DataContainerToRender ConvertSolutionData(SolutionID id, float multipleDeform)
+        public DataContainerToRender ConvertSolutionData(SolutionID id, float multipleDeform, bool isCalculated = true)
         {
-            var solution = _solver.GetSolution(id);
+            var phase = id.IndexPhase;
             var phaseCharacteristics = _solver.GetPhaseCharacteristics(id.IndexPhase);
-            var phase = solution.ID.IndexPhase;
             var meshSetIds = phaseCharacteristics.MeshsetIDs;
             var nodesId = phaseCharacteristics.NodeIDs;
             var elementsId = phaseCharacteristics.ElementIDs;
@@ -65,20 +64,14 @@ namespace FEMmini
                 _geometry.Elements.Count,
                 loadSurfaceCount,
                 loadLineCount);
+
+            #region [Изначальная геометрия]
             //VertNodes
             foreach (var node in _geometry.Nodes.Values)
             {
                 var index = 3 * (node.Id - 1);
                 result.VertNodes[index] = (float)node.X;
                 result.VertNodes[index + 1] = (float)node.Y;
-            }
-            //VertNodesDeformed
-            result.VertNodes.CopyTo(result.VertNodesDeformed, 0);
-            foreach (var nodeResult in solution.NodesResult.Values)
-            {
-                var index = 3 * (nodeResult.Id - 1);
-                result.VertNodesDeformed[index] += (float)nodeResult.FullDeflectionX * multipleDeform;
-                result.VertNodesDeformed[index + 1] += (float)nodeResult.FullDeflectionY * multipleDeform;
             }
             //IndicesNodes
             result.IndicesNodes = nodesId.Select(x => (uint)(x-1)).ToArray();
@@ -119,19 +112,6 @@ namespace FEMmini
                 result.VertElementCenter[3 * (elem.Id - 1)] = x;
                 result.VertElementCenter[3 * (elem.Id - 1) + 1] = y;
             }
-            //VertElementCenterDeformed
-            result.VertElementCenter.CopyTo(result.VertElementCenterDeformed, 0);
-            foreach (var elemId in elementsId)
-            {
-                var nodes = _geometry.Elements[elemId].Nodes;
-                var node1 = nodes[0];
-                var node2 = nodes[1];
-                var node3 = nodes[2];
-                var x = (result.VertNodesDeformed[node1] + result.VertNodesDeformed[node2] + result.VertNodesDeformed[node3]) / 3;
-                var y = (result.VertNodesDeformed[node1 + 1] + result.VertNodesDeformed[node2 + 1] + result.VertNodesDeformed[node3] + 1) / 3;
-                result.VertElementCenterDeformed[elemId] = x;
-                result.VertElementCenterDeformed[elemId + 1] = y;
-            }
             //IndicesElementCenter
             result.IndicesElementCenter = elementsId.Select(x => (uint)(x - 1)).ToArray();
             //VertLoadLineCenter
@@ -148,6 +128,9 @@ namespace FEMmini
                     result.VertLoadLineCenter[load.Id + 1] = y;
                 }
             }
+            #endregion
+
+            #region [Нагрузки]
             //Контейнеры рабочие для работы с данными по нагрузкам
             var loadValues = new List<float>();
             var loadAngles = new List<float>();
@@ -225,7 +208,35 @@ namespace FEMmini
             {
                 result.LoadLineSSBO[index] = new LoadSSBO(loadValues[index] / loadMax, loadAngles[index]);
             }
+            #endregion
 
+            #region [Деформированная схема]
+            if (isCalculated)
+            {
+                var solution = _solver.GetSolution(id);
+                //VertNodesDeformed
+                result.VertNodes.CopyTo(result.VertNodesDeformed, 0);
+                foreach (var nodeResult in solution.NodesResult.Values)
+                {
+                    var index = 3 * (nodeResult.Id - 1);
+                    result.VertNodesDeformed[index] += (float)nodeResult.FullDeflectionX * multipleDeform;
+                    result.VertNodesDeformed[index + 1] += (float)nodeResult.FullDeflectionY * multipleDeform;
+                }
+                //VertElementCenterDeformed
+                result.VertElementCenter.CopyTo(result.VertElementCenterDeformed, 0);
+                foreach (var elemId in elementsId)
+                {
+                    var nodes = _geometry.Elements[elemId].Nodes;
+                    var node1 = nodes[0];
+                    var node2 = nodes[1];
+                    var node3 = nodes[2];
+                    var x = (result.VertNodesDeformed[node1] + result.VertNodesDeformed[node2] + result.VertNodesDeformed[node3]) / 3;
+                    var y = (result.VertNodesDeformed[node1 + 1] + result.VertNodesDeformed[node2 + 1] + result.VertNodesDeformed[node3] + 1) / 3;
+                    result.VertElementCenterDeformed[elemId] = x;
+                    result.VertElementCenterDeformed[elemId + 1] = y;
+                }
+            }
+            #endregion
             return result;
         }
         public List<string> GetTextToRender<T>(SolutionID id, T enumType) 

@@ -39,45 +39,5 @@ namespace FEMmini
             DataContext = windowVM;
             InitializeComponent();
         }
-
-        private void CalcSolution(object sender, EventArgs e)
-        {
-            /*Чтения данных из Инпута
-            _geom = new ClassGeometry(Nodes.Text, Elements.Text, NodesDirihle.Text, NodesNeyman.Text);
-            var rhof = double.Parse(input_rhof.Text) * double.Parse(input_g.Text);
-            var phi = double.Parse(input_phi.Text) * Math.PI / 180;
-            var fem = new FEM(_geom,
-                _problemType,
-                _linearityType,
-                double.Parse(input_E.Text),
-                double.Parse(input_nu.Text),
-                double.Parse(input_q.Text),
-                rhof,
-                double.Parse(input_c.Text),
-                phi);
-            fem.SolveFEM();
-            _nodesResult = fem.NodesResult;
-            _elementResult = fem.ElementResult;
-            _isCalculated = true;
-
-            _indices = _geom.GLIndices();
-            _vertices= _geom.GLVertices();
-            _constraints= _geom.GLConstraints();
-            _forces = _geom.GLForces();
-            _properties = fem.GetProperties();
-            */
-
-            /*Заполненеие графиков НДС грунта
-            FillTables();
-            for (int i = 0; i < _elementResult.Count(); i++)
-            {
-                ElemComboBox.Items.Add(i);
-            }
-            for (int i = 0; i < fem.IterationCount; i++)
-            {
-                IterationComboBox.Items.Add(i);
-            }
-            */
-        }
     }
 }

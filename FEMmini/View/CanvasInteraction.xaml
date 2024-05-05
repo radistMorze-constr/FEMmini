@@ -25,15 +25,15 @@
                 <local:VisualMode Margin="10" />
             </TabItem.Content>
         </TabItem>
-        <TabItem Header="Info">
+        <!--<TabItem Header="Info">
             <TabItem.Content>
                 <local:ResultInfo Margin="10" />
             </TabItem.Content>
-        </TabItem>
-        <TabItem Header="SoilState">
+        </TabItem>-->
+        <!--<TabItem Header="SoilState">
             <TabItem.Content>
                 <local:SoilsPlot Margin="10" />
             </TabItem.Content>
-        </TabItem>
+        </TabItem>-->
     </TabControl>
 </UserControl>

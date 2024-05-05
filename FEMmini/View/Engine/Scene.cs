@@ -9,6 +9,7 @@ using OpenTK.Mathematics;
 using Common;
 using System.Xml.Xsl;
 using FEMmini;
+using Ookii.Dialogs.Wpf;
 
 namespace Engine
 {
@@ -29,6 +30,7 @@ namespace Engine
 
     public abstract class Scene
     {
+        protected VisualStyle _sceneStyle = new VisualStyle(Color4.Black, 1, 0);
         protected Camera2D _camera;
         protected ArrayObject _vao;
         protected Shader _shader;
@@ -41,21 +43,29 @@ namespace Engine
             _shader = new Shader(shaderVert, shaderFrag);
             _shader.Use();
         }
+        public void SetStyle(VisualStyle sceneStyle)
+        {
+            _sceneStyle = sceneStyle;
+        }
         public abstract void Initialize(uint[] indices, params BufferObject[] vbos);
         protected virtual void SetSettings() 
         {
-            GL.PointSize(0);
-            GL.LineWidth(1);
+            GL.PointSize(_sceneStyle.PointWidth);
+            GL.LineWidth(_sceneStyle.LineWidth);
         }
         public abstract void Render(bool isDeformed = false); 
         public virtual void Draw()
         {
+            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+
             var model = Matrix4.Identity;
             SetSettings();
             _shader.Use();
             _shader.SetMatrix4("model", model);
             _shader.SetMatrix4("view", _camera.GetViewMatrix());
             _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+            Vector4 color = new Vector4(_sceneStyle.Color.R, _sceneStyle.Color.G, _sceneStyle.Color.B, _sceneStyle.Color.A);
+            _shader.SetVector4("aColor", color);
             GL.DrawElements(_primitiveType, _vao.Count, DrawElementsType.UnsignedInt, 0);
         }
     }
@@ -101,9 +111,20 @@ namespace Engine
         {
             _primitiveType = PrimitiveType.Points;
         }
-        protected override void SetSettings() 
+        public override void Draw()
         {
-            GL.PointSize(3);
+            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+
+            var model = Matrix4.Identity;
+            SetSettings();
+            _shader.Use();
+            _shader.SetMatrix4("model", model);
+            _shader.SetMatrix4("view", _camera.GetViewMatrix());
+            _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+            Vector4 color = new Vector4(_sceneStyle.Color.R, _sceneStyle.Color.G, _sceneStyle.Color.B, _sceneStyle.Color.A);
+            _shader.SetVector4("aColor", color);
+            _shader.SetFloat("aDepth", 0);
+            GL.DrawElements(_primitiveType, _vao.Count, DrawElementsType.UnsignedInt, 0);
         }
     }
     public class SceneElement : SceneGeometry
@@ -111,6 +132,27 @@ namespace Engine
         public SceneElement(Camera2D camera, string shaderVert, string shaderFrag) : base(camera, shaderVert, shaderFrag)
         {
             _primitiveType = PrimitiveType.Triangles;
+        }
+        public override void Draw()
+        {
+            var model = Matrix4.Identity;
+            SetSettings();
+            _shader.Use();
+            _shader.SetMatrix4("model", model);
+            _shader.SetMatrix4("view", _camera.GetViewMatrix());
+            _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+            Vector4 colorEdge = new Vector4(0, 0, 0, 1);
+            Vector4 colorElement = new Vector4(0.59f, 0.49f, 0.3f, 1);
+
+            _shader.SetFloat("aDepth", -0.2f);
+            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+            _shader.SetVector4("aColor", colorElement);
+            GL.DrawElements(_primitiveType, _vao.Count, DrawElementsType.UnsignedInt, 0);
+            
+            _shader.SetFloat("aDepth", -0.1f);
+            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+            _shader.SetVector4("aColor", colorEdge);
+            GL.DrawElements(_primitiveType, _vao.Count, DrawElementsType.UnsignedInt, 0);
         }
     }
     public class SceneConstraint : SceneGeometry
@@ -155,10 +197,6 @@ namespace Engine
             _vao = new ArrayObject();
             _shader = new Shader(shaderVert, shaderFrag, shaderGeom);
             _shader.Use();
-        }
-        protected override void SetSettings()
-        {
-            GL.LineWidth(3);
         }
         public override void Initialize(uint[] indices, params BufferObject[] vbos)
         {

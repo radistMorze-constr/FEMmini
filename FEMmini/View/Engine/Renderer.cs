@@ -48,6 +48,7 @@ namespace Engine
         //private TextRendering _textRenderer;
 
         private Camera2D _camera;
+        private Common.GraphicSettings _visualSettings;
         private VisibleRectangle _borders;
         private VisibleRectangle _bordersDeformed;
             
@@ -69,13 +70,11 @@ namespace Engine
                 RaisePropertyChanged(nameof(MouseCoordinates));
             }
         }
-            
-        private Color4 _textColor = Color4.Red;
-        public Color4 ClearColor { get; set; } = Color4.Blue;
         public Renderer()
         {
             _scenes = new Dictionary<TypeToRender, Scene> { };
             _vboList = new Dictionary<VBOEnum, BufferObject> { };
+            _visualSettings = new Common.GraphicSettings();
         }
         public void UpdateVBO(VBOEnum type, float[] vertices)
         {
@@ -86,7 +85,7 @@ namespace Engine
         {
             _camera = new Camera2D(_widgetWidth, _widgetHeight);
             SizeChange(widgetWidth, widgetHeight);
-            GL.ClearColor(ClearColor);
+            GL.ClearColor(_visualSettings.BackgroundColor);
             GL.Enable(EnableCap.DepthTest);
 
             /*
@@ -135,14 +134,14 @@ namespace Engine
         }
         public void Render()
         {
-            GL.ClearColor(ClearColor);
+            GL.ClearColor(_visualSettings.BackgroundColor);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+            //GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
 
             if (Mode.Element) _scenes[TypeToRender.Element].Render(Mode.IsDeformed);
             if (Mode.Node) _scenes[TypeToRender.Node].Render(Mode.IsDeformed);
 
-            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+            //GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
             if (Mode.Constraint) _scenes[TypeToRender.Constraint].Render(Mode.IsDeformed);
             if (Mode.LoadNode) _scenes[TypeToRender.LoadNode].Render();
             if (Mode.LoadLine) _scenes[TypeToRender.LoadLine].Render();
@@ -160,26 +159,6 @@ namespace Engine
             _bordersDeformed = FindLimits(dataContainer.VertNodesDeformed, dataContainer.IndicesNodes);
 
             {
-                /*
-                if (dataContainer.LoadNodeSSBO.Length > 0)
-                {
-                    var vbo = new BufferObject(BufferType.ShaderStorageBuffer);
-                    vbo.SetData(dataContainer.LoadNodeSSBO, BufferUsageHint.StaticDraw);
-                    _vboList[VBOEnum.LoadNodeSSBO] = vbo;
-                }
-                if (dataContainer.LoadSurfaceSSBO.Length > 0)
-                {
-                    var vbo = new BufferObject(BufferType.ShaderStorageBuffer);
-                    vbo.SetData(dataContainer.LoadSurfaceSSBO, BufferUsageHint.StaticDraw);
-                    _vboList[VBOEnum.LoadSurfaceSSBO] = vbo;
-                }
-                if (dataContainer.LoadLineSSBO.Length > 0)
-                {
-                    var vbo = new BufferObject(BufferType.ShaderStorageBuffer);
-                    vbo.SetData(dataContainer.LoadLineSSBO, BufferUsageHint.StaticDraw);
-                    _vboList[VBOEnum.LoadLineSSBO] = vbo;
-                }
-                */
                 if (dataContainer.VertNodes.Length > 0)
                 {
                     var vbo = new BufferObject(BufferType.ArrayBuffer);
@@ -223,30 +202,36 @@ namespace Engine
                 if (_vboList.ContainsKey(VBOEnum.Node) && dataContainer.IndicesNodes.Length > 0)
                 {
                     _scenes[TypeToRender.Node].Initialize(dataContainer.IndicesNodes, _vboList[VBOEnum.Node], _vboList[VBOEnum.NodeDeformed]);
+                    _scenes[TypeToRender.Node].SetStyle(_visualSettings.NodeStyle);
                 }
                 if (_vboList.ContainsKey(VBOEnum.Node) && dataContainer.IndicesElementsNodes.Length > 0)
                 {
                     _scenes[TypeToRender.Element].Initialize(dataContainer.IndicesElementsNodes, _vboList[VBOEnum.Node], _vboList[VBOEnum.NodeDeformed]);
+                    _scenes[TypeToRender.Element].SetStyle(_visualSettings.ElementStyle);
                 }
                 if (_vboList.ContainsKey(VBOEnum.Node) && dataContainer.IndicesConstraints.Length > 0)
                 {
                     _scenes[TypeToRender.Constraint].Initialize(dataContainer.IndicesConstraints, _vboList[VBOEnum.Node], _vboList[VBOEnum.NodeDeformed], _vboList[VBOEnum.ConstraintType]);
+                    _scenes[TypeToRender.Constraint].SetStyle(_visualSettings.ConstraintStyle);
                 }
                 if (_vboList.ContainsKey(VBOEnum.Node) && dataContainer.IndicesLoadNode.Length > 0)
                 {
                     _scenes[TypeToRender.LoadNode].Initialize(dataContainer.IndicesLoadNode, _vboList[VBOEnum.Node]);
+                    _scenes[TypeToRender.LoadNode].SetStyle(_visualSettings.ForceStyle);
                     var scene = (SceneLoad)_scenes[TypeToRender.LoadNode];
                     scene.SetSSBOload(dataContainer.LoadNodeSSBO);
                 }
                 if (_vboList.ContainsKey(VBOEnum.LoadLine) && dataContainer.IndicesLoadLine.Length > 0)
                 {
                     _scenes[TypeToRender.LoadLine].Initialize(dataContainer.IndicesLoadLine, _vboList[VBOEnum.Node]);
+                    _scenes[TypeToRender.LoadLine].SetStyle(_visualSettings.ForceStyle);
                     var scene = (SceneLoad)_scenes[TypeToRender.LoadLine];
                     scene.SetSSBOload(dataContainer.LoadLineSSBO);
                 }
                 if (_vboList.ContainsKey(VBOEnum.Element) && dataContainer.IndicesLoadSurface.Length > 0)
                 {
                     _scenes[TypeToRender.LoadSurface].Initialize(dataContainer.IndicesLoadSurface, _vboList[VBOEnum.Element]);
+                    _scenes[TypeToRender.LoadSurface].SetStyle(_visualSettings.ForceStyle);
                     var scene = (SceneLoad)_scenes[TypeToRender.LoadSurface];
                     scene.SetSSBOload(dataContainer.LoadSurfaceSSBO);
                 }

@@ -35,8 +35,6 @@ namespace FEMmini
         public EngineGL()
         {
             InitializeComponent();
-            
-            //_renderer = new Renderer();
 
             var settings = new GLWpfControlSettings
             {
@@ -48,20 +46,6 @@ namespace FEMmini
         
         private void OpenTkControl_OnRender(TimeSpan delta)
         {
-            //var vm = (MainWindowVM)this.DataContext;
-            //_renderer = vm.Renderer;
-            //_renderer.VisaulMode = vm.VisualMode.Mode;
-            /*
-            var geometryData = vm.GeometryData;
-            if (geometryData.NeedToUpdateRender)
-            {
-                _renderer.VertNodes = VertNodes;
-                _renderer.IndicesNodes = IndicesNodes;
-                _renderer.IndicesElements   = IndicesElements;
-                _renderer.IndicesConstraints = IndicesConstraints;
-                _renderer.UpdateVBO();
-            }
-            */
             _renderer.Render();
             
         }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Engine;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,6 +24,15 @@ namespace FEMmini
         public InputInfo()
         {
             InitializeComponent();
+        }
+
+        private void UserControl_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            var vm = (MainWindowVM)this.DataContext;
+            nodesGrid.ItemsSource = vm.Info.NodeVM;
+            elementsGrid.ItemsSource = vm.Info.ElementVM;
+            stiffnessGrid.ItemsSource = vm.Info.StiffnessVM;
+            loadsGrid.ItemsSource = vm.Info.LoadsVM;
         }
     }
 }
