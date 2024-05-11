@@ -9,7 +9,7 @@
         xmlns:col="clr-namespace:System.Collections;assembly=mscorlib"
         mc:Ignorable="d"
         Title="miniFEM" Height="1000" Width="1200"
-        Icon="D:\PetProjects\3D_graphics\Images\title.png"
+        Icon="/title.png"
         Background="LightGray">
 
     <Border Padding="10">
@@ -29,7 +29,7 @@
                 </Grid.ColumnDefinitions>
                 <Button x:Name="OpenSolution" Command="{Binding UpdateDataCommand}" Grid.Column="0" Content="" Width="30">
                     <Button.Background>
-                        <ImageBrush ImageSource="D:\PetProjects\3D_graphics\Images\Custom-Icon-Design-Mono-General-2-Folder.png" />
+                        <ImageBrush ImageSource="/Custom-Icon-Design-Mono-General-2-Folder.png" />
                     </Button.Background>
                 </Button>
                 <!--<Button Margin="10 0 0 0" x:Name="SaveSolution" Grid.Column="1" Content="" Width="30">

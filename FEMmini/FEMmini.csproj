@@ -16,6 +16,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Custom-Icon-Design-Mono-General-2-Folder.png" />
+    <None Remove="title.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
     <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
     <PackageReference Include="OpenTK" Version="4.8.1" />
@@ -63,6 +68,11 @@
   <ItemGroup>
     <Folder Include="Examples\Example1\" />
     <Folder Include="Examples\Example2\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Custom-Icon-Design-Mono-General-2-Folder.png" />
+    <Resource Include="title.png" />
   </ItemGroup>
 
 </Project>
