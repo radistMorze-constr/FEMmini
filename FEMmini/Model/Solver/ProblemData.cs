@@ -9,7 +9,11 @@ namespace FEMmini
         PlaneStress,
         PlaneStrain
     }
-
+    public enum PositiveDirection
+    {
+        Compression,
+        Tension
+    }
     public enum LinearityType
     {
         Linear,

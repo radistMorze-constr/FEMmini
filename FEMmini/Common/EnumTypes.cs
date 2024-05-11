@@ -27,7 +27,8 @@ namespace Common
         ConstraintType,
         LoadNodeSSBO,
         LoadSurfaceSSBO,
-        LoadLineSSBO
+        LoadLineSSBO,
+        TextureText
     }
     public struct VisibleRectangle 
     {
@@ -50,6 +51,7 @@ namespace Common
         public bool LoadSurface { get; set; }
         public bool StiffnessColor { get; set; }
         public bool Text { get; set; }
+        public TextType TextType { get; set; }
         public bool IsDeformed { get; set; }
     }
 
@@ -73,32 +75,17 @@ namespace Common
         LoadSurface,
         Text
     }
-    public enum VisualNodeText
+    public enum TextType
     {
-        Nothing,
-        Id,
-        LoadNodeValue,
+        NodeId,
         DeflectionX,
-        DeflectionY
-    }
-    public enum VisualElementText
-    {
-        Nothing,
-        Id,
-        Stiffness,
-        LoadSurfaceValue,
-        SressX,
-        SressY,
-        SressXY,
-        Sress1,
-        Sress2,
-        Sress3,
-        SressMises
-    }
-    public enum VisualLineCenterText
-    {
-        Nothing,
-        LoadLineValue
+        DeflectionY,
+        ElementId,
+        StressX,
+        StressY,
+        StressXY,
+        Stress1,
+        Stress3
     }
     public class DataContainerToRender 
     {

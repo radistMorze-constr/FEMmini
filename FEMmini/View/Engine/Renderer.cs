@@ -30,7 +30,7 @@ namespace Engine
             { ShaderSources.vertText, "View/Engine/Shaders/vTexture.glsl"},
             { ShaderSources.fragText, "View/Engine/Shaders/fTexture.glsl"}
         };
-
+            
         private VisaulMode _mode = new VisaulMode();
         public VisaulMode Mode {
             get => _mode;
@@ -88,20 +88,6 @@ namespace Engine
             GL.ClearColor(_visualSettings.BackgroundColor);
             GL.Enable(EnableCap.DepthTest);
 
-            /*
-            var index = 0;
-            foreach (var ds in _nodesResult)
-            {
-                _vertices[index * 3] += (float)ds.GetValue(InfoType.DeflectionX) * MultipleDeform;
-                _vertices[1 + index * 3] += (float)ds.GetValue(InfoType.DeflectionY) * MultipleDeform;
-                ++index;
-            }
-                
-            _scaleFactor = (float)_widgetHeight / (float)(_geom.MaxY - _geom.MinY);
-            _textRenderer = new TextRendering((int)_widgetWidth, (int)_widgetHeight);
-            _textRenderer.Load(_nodesResult, _elementResult);
-            */
-            //_camera = new Camera2D((float)Borders.MaxX, (float)Borders.MinX, (float)Borders.MaxY, (float)Borders.MinY, _widgetWidth, _widgetHeight);
             _scenes[TypeToRender.Node] = new SceneNode(_camera,
                 _shaderSources[ShaderSources.vertBase],
                 _shaderSources[ShaderSources.fragBase]);
@@ -124,32 +110,27 @@ namespace Engine
                 _shaderSources[ShaderSources.vertLoad],
                 _shaderSources[ShaderSources.fragLoad],
                 _shaderSources[ShaderSources.geomLoad]);
-
-            //в данный момент для текста шейдер не собран
-            /*
             _scenes[TypeToRender.Text] = new SceneText(_camera,
                 _shaderSources[ShaderSources.vertText],
-                _shaderSources[ShaderSources.vertBase]);
-            */
+                _shaderSources[ShaderSources.fragText]);
         }
         public void Render()
         {
             GL.ClearColor(_visualSettings.BackgroundColor);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            //GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
 
             if (Mode.Element) _scenes[TypeToRender.Element].Render(Mode.IsDeformed);
             if (Mode.Node) _scenes[TypeToRender.Node].Render(Mode.IsDeformed);
 
-            //GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
             if (Mode.Constraint) _scenes[TypeToRender.Constraint].Render(Mode.IsDeformed);
             if (Mode.LoadNode) _scenes[TypeToRender.LoadNode].Render();
             if (Mode.LoadLine) _scenes[TypeToRender.LoadLine].Render();
             if (Mode.LoadSurface) _scenes[TypeToRender.LoadSurface].Render();
-            if (Mode.Text) _scenes[TypeToRender.Text].Render(Mode.IsDeformed);
-
-            //рендер текста будет в ренедере SceneText
-            //_textRenderer.RenderFrame(IsDeformed, _mode, _camera.GetViewMatrix(), _camera.GetProjectionMatrix());
+            if (Mode.Text)
+            {
+                var scene = (SceneText)_scenes[TypeToRender.Text];
+                scene.Render(Mode.TextType);
+            }
         }
         public void InitializeGeometry(DataContainerToRender dataContainer)
         {
@@ -237,29 +218,13 @@ namespace Engine
                 }
             }
         }
-        public void InitializeText<T>(T enumType, uint[] indices, List<string> text) where T : Enum
+        public void TextScreenUpdate()
         {
-            if (enumType.GetType() == typeof(VisualNodeText)) 
-            {
-                if (_vboList.ContainsKey(VBOEnum.Node) && indices.Length > 0)
-                {
-                    ((SceneText)_scenes[TypeToRender.Text]).Initialize(_vboList[VBOEnum.Node], indices, text);
-                }
-            }
-            else if (enumType.GetType() == typeof(VisualElementText))
-            {
-                if (_vboList.ContainsKey(VBOEnum.Element) && indices.Length > 0)
-                {
-                    ((SceneText)_scenes[TypeToRender.Text]).Initialize(_vboList[VBOEnum.Element], indices, text);
-                }
-            }
-            else if (enumType.GetType() == typeof(VisualLineCenterText))
-            {
-                if (_vboList.ContainsKey(VBOEnum.LoadLine) && indices.Length > 0)
-                {
-                    ((SceneText)_scenes[TypeToRender.Text]).Initialize(_vboList[VBOEnum.LoadLine], indices, text);
-                }
-            }
+            ((SceneText)_scenes[TypeToRender.Text]).UpdateTexture();
+        }
+        public void InitializeText(DataContainerToRender dataContainer, Dictionary<TextType, List<string>> typeValues)
+        {
+            ((SceneText)_scenes[TypeToRender.Text]).Initialize(dataContainer, _widgetWidth, _widgetHeight, typeValues);
         }
         private VisibleRectangle FindLimits(float[] vertices, uint[] indices)
         {
@@ -313,6 +278,10 @@ namespace Engine
             var deltaY = (position.Y - LastMousePosition.Y) / _widgetHeight;
             _camera.Translate((float)deltaX, (float)deltaY);
             LastMousePosition = new Vector2((float)position.X, (float)position.Y);
+            if(Mode.Text)
+            {
+                ((SceneText)_scenes[TypeToRender.Text]).UpdateTexture();
+            }
         }
 
         public void MouseWheel(int delta, System.Windows.Point position)
@@ -328,10 +297,18 @@ namespace Engine
                 scaler = 1 - factor;
             }
             _camera.ChangeScale(scaler, position);
+            if (Mode.Text)
+            {
+                ((SceneText)_scenes[TypeToRender.Text]).UpdateTexture();
+            }
         }
         public void MouseWheelPressed()
         {
             SetBordersToCamera();
+            if (Mode.Text)
+            {
+                ((SceneText)_scenes[TypeToRender.Text]).UpdateTexture();
+            }
         }
         public void SetBordersToCamera()
         {

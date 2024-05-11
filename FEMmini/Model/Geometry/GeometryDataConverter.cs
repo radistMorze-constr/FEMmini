@@ -239,101 +239,88 @@ namespace FEMmini
             #endregion
             return result;
         }
-        public List<string> GetTextToRender<T>(SolutionID id, T enumType) 
+        public Dictionary<TextType, List<string>> GetTextToRender(SolutionID id, bool isCalculated = true) 
         {
-            var result = new List<string>();
-            var solution = _solver.GetSolution(id);
-            var solutionProperty = _solver.GetPhaseCharacteristics(id.IndexPhase);
-            var phase = solution.ID.IndexPhase;
+            var precision = "0.#####";
+            var result = new Dictionary<TextType, List<string>>();
+            var phaseCharacteristics = _solver.GetPhaseCharacteristics(id.IndexPhase);
+            var phase = id.IndexPhase;
             var meshset = _geometry.MeshSets[phase];
-            var loadNode = _solver.LoadsNoad;
-            var loadLine = _solver.LoadsLine;
-            var loadSurface = _solver.LoadsSurface;
-            if (enumType.GetType() == typeof(VisualNodeText))
             {
-                var enumValue = ConvertToEnum<VisualNodeText>(enumType);
-                if (enumValue == VisualNodeText.Id)
+                //Номера узлов
+                var list = phaseCharacteristics.NodeIDs.Select(x => x.ToString()).ToList();
+                result[TextType.NodeId] = list;
+            }
+            {
+                //Номера элементов
+                var list = phaseCharacteristics.ElementIDs.Select(x => x.ToString()).ToList();
+                result[TextType.ElementId] = list;
+            }
+            if (isCalculated)
+            {
+                var solution = _solver.GetSolution(id);
                 {
-                    //result = meshset.NodeActiveID.Select(x => x.ToString()).ToList();
-                }
-                if (enumValue == VisualNodeText.LoadNodeValue)
-                {
-                    foreach (var loadId in solutionProperty.LoadNodeIDs)
-                    {
-                        var load = loadNode[loadId];
-                        result.Add(load.ForceX.ToString());
-                    }
-                }
-                if (enumValue == VisualNodeText.DeflectionX)
-                {
+                    //Перемещения узлов X
+                    var list = new List<string>();
                     foreach (var nodeResult in solution.NodesResult.Values)
                     {
-                        result.Add(nodeResult.FullDeflectionX.ToString());
+                        list.Add(nodeResult.FullDeflectionX.ToString(precision));
                     }
+                    result[TextType.DeflectionX] = list;
                 }
-                if (enumValue == VisualNodeText.DeflectionY)
                 {
+                    //Перемещения узлов Y
+                    var list = new List<string>();
                     foreach (var nodeResult in solution.NodesResult.Values)
                     {
-                        result.Add(nodeResult.FullDeflectionY.ToString());
+                        list.Add(nodeResult.FullDeflectionY.ToString(precision));
                     }
+                    result[TextType.DeflectionY] = list;
                 }
-            }
-            else if (enumType.GetType() == typeof(VisualElementText))
-            {
-                var enumValue = ConvertToEnum<VisualElementText>(enumType);
-                if (enumValue == VisualElementText.Id)
                 {
-                    result = meshset.ElementsID.Select(x => x.ToString()).ToList();
-                }
-                if (enumValue == VisualElementText.Stiffness)
-                {
-                    foreach (var elem in meshset.ElementsID)
-                    {
-                        var prop = _geometry.Elements[elem];
-                        result.Add(prop.Properties.ToString());
-                    }
-                }
-                if (enumValue == VisualElementText.LoadSurfaceValue)
-                {
-                    foreach (var loadId in solutionProperty.LoadSurfaceIDs)
-                    {
-                        var load = loadSurface[loadId];
-                        result.Add(load.ForceX.ToString());
-                    }
-                }
-                if (enumValue == VisualElementText.SressX)
-                {
+                    //Напряжения в элементах X
+                    var list = new List<string>();
                     foreach (var elemResult in solution.ElementResult.Values)
                     {
-                        result.Add(elemResult.StressX.ToString());
+                        list.Add(elemResult.StressX.ToString(precision));
                     }
+                    result[TextType.StressX] = list;
                 }
-                if (enumValue == VisualElementText.SressY)
                 {
+                    //Напряжения в элементах Y
+                    var list = new List<string>();
                     foreach (var elemResult in solution.ElementResult.Values)
                     {
-                        result.Add(elemResult.StressY.ToString());
+                        list.Add(elemResult.StressY.ToString(precision));
                     }
+                    result[TextType.StressY] = list;
                 }
-                if (enumValue == VisualElementText.SressXY)
                 {
+                    //Напряжения в элементах XY
+                    var list = new List<string>();
                     foreach (var elemResult in solution.ElementResult.Values)
                     {
-                        result.Add(elemResult.StressXY.ToString());
+                        list.Add(elemResult.StressXY.ToString(precision));
                     }
+                    result[TextType.StressXY] = list;
                 }
-            }
-            else if (enumType.GetType() == typeof(VisualLineCenterText))
-            {
-                var enumValue = ConvertToEnum<VisualLineCenterText>(enumType);
-                if (enumValue == VisualLineCenterText.LoadLineValue)
                 {
-                    foreach (var loadId in solutionProperty.LoadLineIDs)
+                    //Главные напряжения в элементах 1
+                    var list = new List<string>();
+                    foreach (var elemResult in solution.ElementResult.Values)
                     {
-                        var load = loadLine[loadId];
-                        result.Add(load.ForceX.ToString());
+                        list.Add(elemResult.Stress1.ToString(precision));
                     }
+                    result[TextType.Stress1] = list;
+                }
+                {
+                    //Главные напряжения в элементах 3
+                    var list = new List<string>();
+                    foreach (var elemResult in solution.ElementResult.Values)
+                    {
+                        list.Add(elemResult.Stress3.ToString(precision));
+                    }
+                    result[TextType.Stress3] = list;
                 }
             }
             return result;

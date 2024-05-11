@@ -19,7 +19,14 @@ namespace Engine
         {
             get
             {
-                return _ebo.Count;
+                if (_ebo != null)
+                {
+                    return _ebo.Count;
+                }
+                else
+                {
+                    return 0;
+                }
             }
         }
         public bool Initialize(BufferObject vbo, uint[] indices)

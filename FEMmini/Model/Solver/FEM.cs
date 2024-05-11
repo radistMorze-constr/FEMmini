@@ -18,7 +18,9 @@ namespace FEMmini
     {
         private int _idModels = 0;
         private readonly DrawGeometry _geometry;
+        private SolutionID _solutionID;
         private EquationSolver _solver;
+
         public Dictionary<int, MaterialModel> Properties = new Dictionary<int, MaterialModel>();
         public Dictionary<int, NodeLoad> LoadsNoad { get; private set; } = new Dictionary<int, NodeLoad>();
         public Dictionary<int, LineLoad> LoadsLine { get; private set; } = new Dictionary<int, LineLoad>();
@@ -26,10 +28,9 @@ namespace FEMmini
         public Dictionary<int, Constraints> Constraints = new Dictionary<int, Constraints>();
         private Dictionary<int, PhaseCharacteristics> _phaseCharacteristics = new Dictionary<int, PhaseCharacteristics>();
         public Dictionary<SolutionID, Solution> Solutions { get; private set; } = new Dictionary<SolutionID, Solution>();
-        private SolutionID _solutionID;
-
         public LinearityType LinearityType { get; set; }
         public ProblemType ProblemType { get; set; }
+        public PositiveDirection PositiveDirection { get; set; }
 
         public FEM(DrawGeometry geom)
         {
@@ -49,7 +50,7 @@ namespace FEMmini
             Constraints = constraints;
             Properties = properties;
             _phaseCharacteristics = phaseCharacteristics;
-            _solver = new SolverPlaneLinear(ProblemType, _geometry, _phaseCharacteristics, Properties);
+            _solver = new SolverPlaneLinear(_geometry, _phaseCharacteristics, Properties);
         }
             
         public Solution GetSolution(SolutionID id) 
@@ -68,6 +69,14 @@ namespace FEMmini
         {
             return Constraints[constraintId];
         }
+        public void UpdateMaterials()
+        {
+            foreach(var mat in Properties.Values)
+            {
+                mat.ProblemType = ProblemType;
+            }
+        }
+        /*
         public void AddMaterial(int index, Typematerial typeModel, double E, double nu, double rhof, double c, double phi)
         {
             ++_idModels;
@@ -80,7 +89,7 @@ namespace FEMmini
                 Properties[_idModels] = new IdealPlasticity(index, E, nu, rhof, ProblemType, c, phi);
             }
         }
-
+        */
         public IEnumerable<Constraints> IteratorConstraint(List<int> constraints)
         {
             foreach (var index in constraints)
@@ -116,7 +125,16 @@ namespace FEMmini
 
         public void Solve()
         {
-            foreach(var solutionProperty in _phaseCharacteristics.Values)
+            if (PositiveDirection == PositiveDirection.Compression)
+            {
+                _solver.PositiveDirectionStrain = -1;
+            }
+            else
+            {
+                _solver.PositiveDirectionStrain = 1;
+            }
+            UpdateMaterials();
+            foreach (var solutionProperty in _phaseCharacteristics.Values)
             {
                 var count = solutionProperty.CountSteps;
                 for (int i = 0; i < count; i++) 

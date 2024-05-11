@@ -14,10 +14,7 @@ namespace FEMmini
     //delegate IEnumerable<Load> LoadDelegate(List<int> loads);
     public abstract class EquationSolver
     {
-        const int PositiveDirectionStrain = -1;
-        private bool _isReady = false;
-
-        private ProblemType _problemType;
+        public int PositiveDirectionStrain { get; set; }
         private readonly DrawGeometry _geometry;
         private readonly Dictionary<int, PhaseCharacteristics> _phaseCharacteristics;
         private readonly Dictionary<int, MaterialModel> _properties;
@@ -32,9 +29,8 @@ namespace FEMmini
         /// </summary>
         private Dictionary<int, ResultElement> _elementResult = new Dictionary<int, ResultElement>();
 
-        public EquationSolver(ProblemType problemType, DrawGeometry geometry, Dictionary<int, PhaseCharacteristics> phaseCharacteristics, Dictionary<int, MaterialModel> properties)
+        public EquationSolver(DrawGeometry geometry, Dictionary<int, PhaseCharacteristics> phaseCharacteristics, Dictionary<int, MaterialModel> properties)
         {
-            _problemType = problemType;
             _geometry = geometry;
             _phaseCharacteristics = phaseCharacteristics;
             _properties = properties;
@@ -133,7 +129,6 @@ namespace FEMmini
             {
                 _elementResult[element.Key] = new ResultElement(element.Value);
             }
-            _isReady = true;
         }
 
         public virtual void SolveEquations(IEnumerable<Load> iteratorLoad, IEnumerable<Constraints> iteratorConstraint, Solution current)
@@ -148,22 +143,22 @@ namespace FEMmini
 
             CombineGlobal(globalMatrix);
             
-            var path = "D:\\PetProjects\\3D_graphics\\Frame geometry Second\\newIter\\GlobalMatrixBeforeGU.txt";
-            Parser.WriteMatrix(path, globalMatrix);
+            //var path = "D:\\PetProjects\\3D_graphics\\Frame geometry Second\\newIter\\GlobalMatrixBeforeGU.txt";
+            //Parser.WriteMatrix(path, globalMatrix);
             
             ApplyLoads(iteratorLoad, globalRight);
             ApplyConstraints(iteratorConstraint, globalRight, globalMatrix);
-            
+            /*
             path = "D:\\PetProjects\\3D_graphics\\Frame geometry Second\\newIter\\GlobalMatrix.txt";
             Parser.WriteMatrix(path, globalMatrix);
             path = "D:\\PetProjects\\3D_graphics\\Frame geometry Second\\newIter\\RightVector.txt";
             Parser.WriteVector(path, globalRight);
-            
+            */
             var solution = globalMatrix.Solve(globalRight);
-            
+            /*
             path = "D:\\PetProjects\\3D_graphics\\Frame geometry Second\\newIter\\solutionVector.txt";
             Parser.WriteVector(path, solution);
-            
+            */
             foreach (var node in nodes)
             {
                 _nodesResult[node].Increase(solution[2 * (node - 1)], solution[2 * (node - 1) + 1]);
@@ -225,10 +220,12 @@ namespace FEMmini
             syy = sigma[1];
             sxy = sigma[2];
             szz = 0;
+            /*
             if (_problemType == ProblemType.PlaneStrain)
             {
                 szz = _properties[index].Nu * (sxx + syy);
             }
+            */
             var s1 = 0.5 * (sxx + syy + Math.Sqrt(Math.Pow(sxx - syy, 2) + 4 * Math.Pow(sxy, 2)));
             var s3 = 0.5 * (sxx + syy - Math.Sqrt(Math.Pow(sxx - syy, 2) + 4 * Math.Pow(sxy, 2)));
             resultElem.Increase(sxx, syy, sxy, szz,
@@ -239,14 +236,14 @@ namespace FEMmini
 
     public class SolverPlaneLinear : EquationSolver
     {
-        public SolverPlaneLinear(ProblemType problemType, DrawGeometry geometry, Dictionary<int, PhaseCharacteristics> phaseCharacteristics, Dictionary<int, MaterialModel> properties) : 
-            base(problemType, geometry, phaseCharacteristics, properties) { }
+        public SolverPlaneLinear(DrawGeometry geometry, Dictionary<int, PhaseCharacteristics> phaseCharacteristics, Dictionary<int, MaterialModel> properties) : 
+            base(geometry, phaseCharacteristics, properties) { }
     }
 
     public class SolverPlaneNonLinear : EquationSolver
     {
-        public SolverPlaneNonLinear(ProblemType problemType, DrawGeometry geometry, Dictionary<int, PhaseCharacteristics> phaseCharacteristics, Dictionary<int, MaterialModel> properties) : 
-            base(problemType, geometry, phaseCharacteristics, properties) { }
+        public SolverPlaneNonLinear(DrawGeometry geometry, Dictionary<int, PhaseCharacteristics> phaseCharacteristics, Dictionary<int, MaterialModel> properties) : 
+            base(geometry, phaseCharacteristics, properties) { }
         public virtual void SolveEquations(List<Load> loads, List<Constraints> constraints, Solution current)
         {
             /*

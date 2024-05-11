@@ -60,4 +60,9 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Examples\Example1\" />
+    <Folder Include="Examples\Example2\" />
+  </ItemGroup>
+
 </Project>

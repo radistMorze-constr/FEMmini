@@ -14,9 +14,6 @@ namespace FEMmini
     public class SolverManager : BindableBase
     {
         private SolutionID _solutionIDtoRender;
-        private VisualNodeText _nodeResult = VisualNodeText.Nothing;
-        private VisualElementText _elementResult = VisualElementText.Nothing;
-        private VisualLineCenterText _lineCenterText = VisualLineCenterText.Nothing;
         private int _multipleDeform = 10;
         public int MultipleDeform 
         {
@@ -46,37 +43,6 @@ namespace FEMmini
                 SetSolutionToRender(_solutionIDtoRender);
             }
         }
-        public VisualNodeText NodeResult
-        {
-            get => _nodeResult;
-            set
-            {
-                _nodeResult = value;
-                if (_nodeResult == VisualNodeText.Nothing) return;
-                SetTextToRender(_nodeResult);
-            }
-        }
-        public VisualElementText ElementResult
-        {
-            get => _elementResult;
-            set
-            {
-                _elementResult = value;
-                if (_elementResult == VisualElementText.Nothing) return;
-                SetTextToRender(_elementResult);
-            }
-        }
-        public VisualLineCenterText LineCenterText
-        {
-            get => _lineCenterText;
-            set
-            {
-                _lineCenterText = value;
-                if (_lineCenterText == VisualLineCenterText.Nothing) return;
-                SetTextToRender(_lineCenterText);
-            }
-        }
-
         public SolverManager()
         {
             Fem = new FEM(Geometry);
@@ -105,21 +71,17 @@ namespace FEMmini
         public void SetSolutionToRender(SolutionID id,bool isCalculated = true)
         {
             //выполнить конвертацию данных в списке и передать в рендер
+            /*
             if (id.IndexPhase != _solutionIDtoRender.IndexPhase && id.StepLoad != _solutionIDtoRender.StepLoad)
             {
-                Renderer.InitializeGeometry(_geometryConverter.ConvertSolutionData(id, MultipleDeform, isCalculated));
+                var problemData = _geometryConverter.ConvertSolutionData(id, MultipleDeform, isCalculated);
+                Renderer.InitializeGeometry(problemData);
             }
-            Renderer.InitializeGeometry(_geometryConverter.ConvertSolutionData(id, MultipleDeform, isCalculated));
+            */
+            var problemData = _geometryConverter.ConvertSolutionData(id, MultipleDeform, isCalculated);
+            Renderer.InitializeGeometry(problemData);
             Renderer.MouseWheelPressed();
-        }
-        public void SetTextToRender<T>(T enumText) where T : Enum
-        {
-            //нужно передавать массив индексов вершин в метод
-            var indices = new uint[] { };
-
-
-
-            Renderer.InitializeText(enumText, indices, _geometryConverter.GetTextToRender(SolutionID, enumText));
+            Renderer.InitializeText(problemData, _geometryConverter.GetTextToRender(id, isCalculated));
         }
         public void WriteSolutionToFile(string outFile)
         {

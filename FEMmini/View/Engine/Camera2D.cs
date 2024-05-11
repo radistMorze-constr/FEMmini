@@ -36,10 +36,10 @@ namespace Engine
         private float _centerX = 0.0f;
         private float _centerY = 0.0f;
 
-        private float _cameraLeft = 0.0f; 
-        private float _cameraRight = 0.0f; 
-        private float _cameraBottom = 0.0f; 
-        private float _cameraTop = 0.0f;
+        public float CameraLeft { get; set; } = 0.0f;
+        public float CameraRight { get; set; } = 0.0f;
+        public float CameraBottom { get; set; } = 0.0f;
+        public float CameraTop { get; set; } = 0.0f;
 
         private VisibleRectangle _borders;
 
@@ -65,24 +65,24 @@ namespace Engine
             _centerY = borders.MinY + (heightGlobal) / 2;
             if (widthGlobal / heightGlobal > 1.0f)
             {
-                _cameraLeft = borders.MinX;
-                _cameraRight = borders.MaxX;
-                _cameraBottom = _centerY - widthGlobal / AspectRatio / 2;
-                _cameraTop = _centerY + widthGlobal / AspectRatio / 2;
+                CameraLeft = borders.MinX;
+                CameraRight = borders.MaxX;
+                CameraBottom = _centerY - widthGlobal / AspectRatio / 2;
+                CameraTop = _centerY + widthGlobal / AspectRatio / 2;
             }
             else
             {
-                _cameraBottom = borders.MinY;
-                _cameraTop = borders.MaxY;
-                _cameraLeft = _centerX - heightGlobal * AspectRatio / 2;
-                _cameraRight = _centerX + heightGlobal * AspectRatio / 2;
+                CameraBottom = borders.MinY;
+                CameraTop = borders.MaxY;
+                CameraLeft = _centerX - heightGlobal * AspectRatio / 2;
+                CameraRight = _centerX + heightGlobal * AspectRatio / 2;
             }
             //_scale = 1;
         }
         public Vector2 MouseCoordinate(float xFactor, float yFactor)
         {
-            var x = _cameraLeft + xFactor * (_cameraRight - _cameraLeft);
-            var y = _cameraTop - yFactor * (_cameraTop - _cameraBottom);
+            var x = CameraLeft + xFactor * (CameraRight - CameraLeft);
+            var y = CameraTop - yFactor * (CameraTop - CameraBottom);
             var result = new Vector2(x, y);
             return result;
         }
@@ -95,23 +95,23 @@ namespace Engine
             var yFactor = (float)position.Y / _windowHeight;
             ZoomPosition = MouseCoordinate(xFactor, yFactor);
 
-            var dx = _cameraRight - _cameraLeft;
-            var dy = _cameraTop - _cameraBottom;
+            var dx = CameraRight - CameraLeft;
+            var dy = CameraTop - CameraBottom;
 
-            _cameraLeft = ZoomPosition.X - dx * xFactor * delta;
-            _cameraRight = ZoomPosition.X + dx * (1 - xFactor) * delta;
-            _cameraBottom = ZoomPosition.Y - dy * (1 - yFactor) * delta;
-            _cameraTop = ZoomPosition.Y + dy * yFactor * delta;
+            CameraLeft = ZoomPosition.X - dx * xFactor * delta;
+            CameraRight = ZoomPosition.X + dx * (1 - xFactor) * delta;
+            CameraBottom = ZoomPosition.Y - dy * (1 - yFactor) * delta;
+            CameraTop = ZoomPosition.Y + dy * yFactor * delta;
         }
 
         public float[] GetActualsize()
         {
             float[] vertices =
         {
-             _cameraLeft,  _cameraBottom, 0.0f, // top right
-             _cameraRight, _cameraBottom, 0.0f, // bottom right
-             _cameraRight, _cameraTop, 0.0f, // bottom left
-             _cameraLeft,  _cameraTop, 0.0f, // top left
+             CameraLeft,  CameraBottom, 0.0f, // top right
+             CameraRight, CameraBottom, 0.0f, // bottom right
+             CameraRight, CameraTop, 0.0f, // bottom left
+             CameraLeft,  CameraTop, 0.0f, // top left
         };
 
             return vertices;
@@ -119,13 +119,13 @@ namespace Engine
 
         public void Translate(float deltaX, float deltaY)
         {
-            _centerX -= (_cameraRight - _cameraLeft) * deltaX;
-            _centerY += (_cameraTop - _cameraBottom) * deltaY;
+            _centerX -= (CameraRight - CameraLeft) * deltaX;
+            _centerY += (CameraTop - CameraBottom) * deltaY;
 
-            _cameraLeft -= (_cameraRight - _cameraLeft) * deltaX;
-            _cameraRight -= (_cameraRight - _cameraLeft) * deltaX;
-            _cameraBottom += (_cameraTop - _cameraBottom) * deltaY;
-            _cameraTop += (_cameraTop - _cameraBottom) * deltaY;
+            CameraLeft -= (CameraRight - CameraLeft) * deltaX;
+            CameraRight -= (CameraRight - CameraLeft) * deltaX;
+            CameraBottom += (CameraTop - CameraBottom) * deltaY;
+            CameraTop += (CameraTop - CameraBottom) * deltaY;
         }
 
         // This is simply the aspect ratio of the viewport, used for the projection matrix.
@@ -136,13 +136,13 @@ namespace Engine
             var factorX = windowWidth / _windowWidth - 1;
             var factorY = windowHeight / _windowHeight - 1;
 
-            var deltaX = factorX * (_cameraRight - _cameraLeft) / 2;
-            var deltaY = factorY * (_cameraTop - _cameraBottom) / 2;
+            var deltaX = factorX * (CameraRight - CameraLeft) / 2;
+            var deltaY = factorY * (CameraTop - CameraBottom) / 2;
 
-            _cameraLeft -= deltaX;
-            _cameraRight += deltaX;
-            _cameraBottom -= deltaY;
-            _cameraTop += deltaY;
+            CameraLeft -= deltaX;
+            CameraRight += deltaX;
+            CameraBottom -= deltaY;
+            CameraTop += deltaY;
 
             _windowWidth = windowWidth;
             _windowHeight= windowHeight;
@@ -169,7 +169,7 @@ namespace Engine
         public Matrix4 GetProjectionMatrix()
         {
             //return Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, 0.01f, 100f);
-            return Matrix4.CreateOrthographicOffCenter(_cameraLeft, _cameraRight, _cameraBottom, _cameraTop, 0.01f, 100f);
+            return Matrix4.CreateOrthographicOffCenter(CameraLeft, CameraRight, CameraBottom, CameraTop, 0.01f, 100f);
 
         }
     }

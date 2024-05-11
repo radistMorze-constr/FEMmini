@@ -17,7 +17,10 @@
         <RadioButton GroupName="PlaneType" IsChecked="{Binding Path=AnalysisMode.ProblemType, Converter={StaticResource EnumsIEnumerableConverter}, ConverterParameter={x:Static local:ProblemType.PlaneStrain}}">Plane strain</RadioButton>
         <TextBlock>Выберите тип решаемой задачи:</TextBlock>
         <RadioButton GroupName="TypeofModel" IsChecked="{Binding Path=AnalysisMode.LinearityType, Converter={StaticResource EnumsIEnumerableConverter}, ConverterParameter={x:Static local:LinearityType.Linear}}">Линейная</RadioButton>
-        <RadioButton GroupName="TypeofModel" IsChecked="{Binding Path=AnalysisMode.LinearityType, Converter={StaticResource EnumsIEnumerableConverter}, ConverterParameter={x:Static local:LinearityType.NonLinear}}">Нелинейная</RadioButton>
-        <Button x:Name="buttonCalculate" Width="60" Height="30" Background="LightGray" Content="Посчитать" Command="{Binding CalculateCommand}"/>
+        <RadioButton GroupName="TypeofModel" IsEnabled="False" IsChecked="{Binding Path=AnalysisMode.LinearityType, Converter={StaticResource EnumsIEnumerableConverter}, ConverterParameter={x:Static local:LinearityType.NonLinear}}">Нелинейная</RadioButton>
+        <TextBlock>Выберите положительное направление для напряжений:</TextBlock>
+        <RadioButton GroupName="StressDirection" IsChecked="{Binding Path=AnalysisMode.PositiveDirection, Converter={StaticResource EnumsIEnumerableConverter}, ConverterParameter={x:Static local:PositiveDirection.Compression}}">Напряжения сжатия положительны</RadioButton>
+        <RadioButton GroupName="StressDirection" IsChecked="{Binding Path=AnalysisMode.PositiveDirection, Converter={StaticResource EnumsIEnumerableConverter}, ConverterParameter={x:Static local:PositiveDirection.Tension}}">Напряжения растяжения положительны</RadioButton>
+        <Button x:Name="buttonCalculate" Width="60" Height="30" Background="LightGray" Content="Посчитать" Command="{Binding CalculateCommand}" Margin="10"/>
     </StackPanel>
 </UserControl>

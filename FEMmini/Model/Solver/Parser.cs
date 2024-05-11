@@ -130,7 +130,7 @@ namespace FEMmini
             {
                 if (line == "</Тип жесткости>") break;
                 var numbers = Array.ConvertAll(line.Split(' '), double.Parse);
-                problemData.Properties[(int)numbers[0]] = new Elastic((int)numbers[0], numbers[1], numbers[2], numbers[3], (ProblemType)numbers[4]);
+                problemData.Properties[(int)numbers[0]] = new Elastic((int)numbers[0], numbers[1], numbers[2], numbers[3]);
             }
         }
 

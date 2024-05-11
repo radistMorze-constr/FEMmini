@@ -66,6 +66,7 @@ namespace FEMmini
 	public class ResultElement: Result
     {
         private Vector<double> _stress;
+        private Vector<double> _stressPrincipal;
         private Vector<double> _stressAccum;
         private Vector<double> _strains;
 
@@ -80,8 +81,8 @@ namespace FEMmini
         public double StressY { get { return _stress[1]; } }
         public double StressXY { get { return _stress[2]; } }
         public double StressZ { get; private set; }
-        public double Stress1 { get; private set; }
-        public double Stress3 { get; private set; }
+        public double Stress1 { get => _stressPrincipal[0]; }
+        public double Stress3 { get => _stressPrincipal[2]; }
         public double StrainsX { get { return _strains[0]; } }
         public double StrainsY { get { return _strains[1]; } }
         public double StrainsXY { get { return _strains[2]; } }
@@ -89,6 +90,7 @@ namespace FEMmini
         public ResultElement(ResultElement element) : base()
         {
             _stress = element._stress;
+            _stressPrincipal = element._stressPrincipal;
             _stressAccum = element._stressAccum;
             _strains = element._strains;
             StressZ = element.StressZ;
@@ -101,6 +103,7 @@ namespace FEMmini
         public ResultElement() : base()
         {
             _stress = Vector<double>.Build.Dense(3, 0);
+            _stressPrincipal = Vector<double>.Build.Dense(3, 0);
             _stressAccum = Vector<double>.Build.Dense(3, 0);
             _strains = Vector<double>.Build.Dense(3, 0);
         }
@@ -110,7 +113,7 @@ namespace FEMmini
         {
             _stress[0] = sxx; _stress[1] = syy; _stress[2] = sxy; StressZ = szz;
             _strains[0] = strainX; _strains[1] = strainY; _strains[2] = strainXY;
-            Stress1 = s1; Stress3 = s3;
+            _stressPrincipal[0] = s1; _stressPrincipal[2] = s3;
         }
     }
 }
