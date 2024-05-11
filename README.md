@@ -9,6 +9,7 @@ FEMmini
 Screenshots
 ------
 https://ibb.co/fXxpfZh
+![screenshot](miniFEM window.png)
 ![]([https://image.ibb.co/nt76La/Screenshot_from_2017_02_23_13_26_44.png](https://ibb.co/fXxpfZh))
 
 Progress
